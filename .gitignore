@@ -1,0 +1,14 @@
+# build results
+bin/
+obj/
+packages/
+TestResults/
+
+# class readings
+combinatorial.docx
+doc/
+
+# cache/option files and directories
+.Rhistory
+.Rproj.user
+.vs/

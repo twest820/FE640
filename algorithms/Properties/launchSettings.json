@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Algorithms": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "commandLineArgs": "C:\\Users\\todd\\Documents\\forestry\\OSU\\FE 640\\scripts\\FE640_set1_20.ps1"
+    }
+  }
+}

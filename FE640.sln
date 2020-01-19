@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29613.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5D803A4B-00C6-4695-8283-0F959A789D83}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE.md = LICENSE.md
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Algorithms", "algorithms\Algorithms.csproj", "{AC643819-9296-4ED8-8F75-4EAB065CA4A4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{CB456956-A4C1-489E-8328-464382FCC229}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC643819-9296-4ED8-8F75-4EAB065CA4A4}.Debug|x64.ActiveCfg = Debug|x64
+		{AC643819-9296-4ED8-8F75-4EAB065CA4A4}.Debug|x64.Build.0 = Debug|x64
+		{AC643819-9296-4ED8-8F75-4EAB065CA4A4}.Release|x64.ActiveCfg = Release|x64
+		{AC643819-9296-4ED8-8F75-4EAB065CA4A4}.Release|x64.Build.0 = Release|x64
+		{CB456956-A4C1-489E-8328-464382FCC229}.Debug|x64.ActiveCfg = Debug|x64
+		{CB456956-A4C1-489E-8328-464382FCC229}.Debug|x64.Build.0 = Debug|x64
+		{CB456956-A4C1-489E-8328-464382FCC229}.Release|x64.ActiveCfg = Release|x64
+		{CB456956-A4C1-489E-8328-464382FCC229}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFB4DDFF-1113-4786-A472-048507FBC461}
+	EndGlobalSection
+EndGlobal
