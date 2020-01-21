@@ -23,5 +23,20 @@ namespace FE640.Test
             Assert.IsTrue(objectiveFunctionRatio > 0.999F);
             Assert.IsTrue(objectiveFunctionRatio < 1.001F);
         }
+
+        [TestMethod]
+        public void ThresholdAccepting()
+        {
+            HarvestUnits units = new HarvestUnits("FE640_set1_20.xlsx");
+            ThresholdAccepting acceptor = new ThresholdAccepting(units);
+            acceptor.Accept();
+
+            acceptor.RecalculateHarvestVolumes();
+            float endObjectiveFunction = acceptor.ObjectiveFunctionByIteration.Last();
+            float recalculatedObjectiveFunction = acceptor.RecalculateObjectiveFunction();
+            float objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.999F);
+            Assert.IsTrue(objectiveFunctionRatio < 1.001F);
+        }
     }
 }

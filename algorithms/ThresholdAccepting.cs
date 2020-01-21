@@ -6,120 +6,103 @@ namespace FE640
 {
     public class ThresholdAccepting : Heuristic
     {
+        public int IterationsPerThreshold { get; set; }
+        public List<float> Thresholds { get; private set; }
+
         public ThresholdAccepting(HarvestUnits units)
             : base(units)
         {
+            this.IterationsPerThreshold = 5 * units.Count;
+            this.Thresholds = new List<float>() { 1.1F, 1.08F, 1.05F, 1.03F, 1.01F, 1.0F };
+
+            this.ObjectiveFunctionByIteration = new List<float>(this.Thresholds.Count * this.IterationsPerThreshold)
+            {
+                this.BestObjectiveFunction
+            };
+
+            // example code initializes parcels to random harvest period
         }
 
+        // very similar code to SimulatedAnnealing.Anneal()
+        // Differences are all in move acceptance.
         public TimeSpan Accept()
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            //    T = 200      ' target harvest level for all periods
+            float currentObjectiveFunction = this.BestObjectiveFunction;
+            float harvestPeriodScalingFactor = ((float)this.CurrentHarvestByPeriod.Length - 1.01F) / (float)byte.MaxValue;
+            int movesSinceBestObjectiveImproved = 0;
+            float unitIndexScalingFactor = ((float)this.Units.Count - 0.01F) / (float)UInt16.MaxValue;
 
-            //    nrep = 1000  ' number of repetitions at each threshold
+            foreach (float threshold in this.Thresholds)
+            {
+                for (int iteration = 0; iteration < this.IterationsPerThreshold; ++iteration)
+                {
+                    int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
+                    int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
+                    int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                    while (candidateHarvestPeriod == currentHarvestPeriod)
+                    {
+                        candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                    }
+                    Debug.Assert(candidateHarvestPeriod > 0);
 
-            //    For i = 1 To 9
+                    float candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
+                    float candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
+                    float currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+                    float currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
 
-            //        soln(i) = 1 + Int(3 * Rnd) ' setting all parcels to a random harvest period
-            //        vol(i) = 10 * i            ' putting in some volumes per parcel that are easy to check later
-            //        bestsoln(i) = soln(i)     ' initialize best solution
+                    // default to move from uncut to cut case
+                    float candidateDeviations = (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
+                                                (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
+                    float currentDeviations = (this.TargetHarvestPerPeriod - candidateHarvest) *
+                                              (this.TargetHarvestPerPeriod - candidateHarvest);
+                    // if this is a move between periods then include objective function terms for the unit's current harvest period
+                    if (currentHarvestPeriod > 0)
+                    {
+                        candidateDeviations += (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
+                                               (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
+                        currentDeviations += (this.TargetHarvestPerPeriod - currentHarvest) *
+                                             (this.TargetHarvestPerPeriod - currentHarvest);
+                    }
+                    float candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
+                    float candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
 
-            //    Next i
+                    if (candidateObjectiveFunction < threshold * currentObjectiveFunction)
+                    {
+                        this.CurrentHarvestPeriods[unitIndex] = candidateHarvestPeriod;
+                        this.CurrentHarvestByPeriod[candidateHarvestPeriod] += candidateYield;
+                        this.CurrentHarvestByPeriod[currentHarvestPeriod] -= currentYield;
+                        currentObjectiveFunction = candidateObjectiveFunction;
+                        ++movesSinceBestObjectiveImproved;
+                        Debug.Assert(this.CurrentHarvestByPeriod[candidateHarvestPeriod] >= 0.0F);
+                        Debug.Assert(this.CurrentHarvestByPeriod[currentHarvestPeriod] >= 0.0F);
+                        Debug.Assert(currentObjectiveFunction >= 0.0F);
 
-            //    Erase h
+                        if (currentObjectiveFunction < this.BestObjectiveFunction)
+                        {
+                            if (movesSinceBestObjectiveImproved == 1)
+                            {
+                                // incremental update of best solution
+                                this.BestHarvestPeriods[unitIndex] = candidateHarvestPeriod;
+                                this.BestHarvestByPeriod[candidateHarvestPeriod] = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
+                                this.BestHarvestByPeriod[currentHarvestPeriod] = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+                            }
+                            else
+                            {
+                                // copy current solution since history of moves between it and last best solution is unknown
+                                Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
+                                Array.Copy(this.CurrentHarvestPeriods, 0, this.BestHarvestPeriods, 0, this.CurrentHarvestPeriods.Length);
+                            }
 
-            //    For i = 1 To 9
-            //        h(soln(i)) = h(soln(i)) + vol(i)
-            //    Next i
-
-
-            //    '========================================================
-            //    ' find initial value of objective function
-            //    '========================================================
-
-            //    objnow = 0
-
-
-            //    For i = 1 To 3
-            //        objnow = objnow + (T - h(i)) ^ 2  ' sum squared deviations from goals
-            //    Next i
-
-            //    'set globalbest equal to objnow since it is the best we have yet seen
-
-            //    globalbest = objnow
-
-            //    For n = 1 To 6  ' threshold number
-
-            //        For rep = 1 To nrep
-
-            //            x = 1 + Int(Rnd* 9) ' reach in the bag for a harvest unit between 1 to 9
-
-            //            per = 1 + Int(Rnd* 3) ' reach in the bag for a cut period
-
-            //            oldsoln = soln(x)      ' save old cut period
-
-            //            soln(x) = per          ' temporarily put in new cut period
-
-            //            Erase h                ' set harvest period volume to zero
-
-            //            For i = 1 To 9
-            //                h(soln(i)) = h(soln(i)) + vol(i)
-            //            Next i
-
-            //            tempobj = 0           ' trial value of objective function
-
-            //            For i = 1 To 3
-            //                tempobj = tempobj + (T - h(i)) * (T - h(i))
-            //            Next i
-
-            //            If tempobj<k(n) * objnow Then
-
-            //                objnow = tempobj
-
-            //                If objnow<globalbest Then
-
-            //                    globalbest = objnow
-
-            //                    For i = 1 To 9
-            //                        bestsoln(i) = soln(i)    ' save best we have ever seen
-            //                    Next i
-
-            //                End If
-
-            //            Else
-
-            //                soln(x) = oldsoln ' replace old value if move rejected
-
-            //            End If
-
-            //        Next rep
-
-            //    Next n
-
-            //    '==================================================
-            //    ' print out solution
-            //    '==================================================
-
-            //    For i = 1 To 9
-
-            //        Debug.Print i, bestsoln(i)
-
-            //Next i
-
-            //    Erase h
-
-            //    For i = 1 To 9
-            //        h(bestsoln(i)) = h(bestsoln(i)) + vol(i)
-            //    Next i
-
-            //    Debug.Print "first  period harvest"; h(1)
-            //  Debug.Print "second period harvest"; h(2)
-            //  Debug.Print "third  period harvest"; h(3)
-
-
-            //End Sub
+                            this.BestObjectiveFunction = currentObjectiveFunction;
+                            movesSinceBestObjectiveImproved = 0;
+                        }
+                    }
+                    this.ObjectiveFunctionByIteration.Add(currentObjectiveFunction);
+                }
+            }
 
             stopwatch.Stop();
             return stopwatch.Elapsed;
