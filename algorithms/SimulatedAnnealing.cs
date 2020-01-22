@@ -74,6 +74,7 @@ namespace FE640
                                              (this.TargetHarvestPerPeriod - currentHarvest);
                     }
                     float candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
+                    // TODO: if needed, support zero crossing of objective function
 
                     bool acceptMove = candidateObjectiveFunctionChange < 0.0F;
                     if (acceptMove == false)

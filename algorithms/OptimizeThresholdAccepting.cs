@@ -19,7 +19,7 @@ namespace FE640
             this.Thresholds = null;
         }
 
-        protected override void ProcessRecord()
+        private ThresholdAccepting CreateAcceptor()
         {
             ThresholdAccepting acceptor = new ThresholdAccepting(this.Units);
             if (this.IterationsPerThreshold.HasValue)
@@ -35,16 +35,38 @@ namespace FE640
                 acceptor.Thresholds.Clear();
                 acceptor.Thresholds.AddRange(this.Thresholds);
             }
-            TimeSpan annealingTime = acceptor.Accept();
+            return acceptor;
+        }
 
-            this.WriteObject(acceptor);
+        protected override void ProcessRecord()
+        {
+            ThresholdAccepting bestAcceptor = null;
+            TimeSpan acceptanceTime;
+            List<float> objectiveFunctionValues = new List<float>();
+            for (int iteration = 0; iteration < this.BestOf; ++iteration)
+            {
+                ThresholdAccepting currentAcceptor = this.CreateAcceptor();
+                acceptanceTime = currentAcceptor.Accept();
+                objectiveFunctionValues.Add(currentAcceptor.BestObjectiveFunction);
+
+                if ((bestAcceptor == null) || (currentAcceptor.BestObjectiveFunction < bestAcceptor.BestObjectiveFunction))
+                {
+                    bestAcceptor = currentAcceptor;
+                }
+            }
+
+            this.WriteObject(bestAcceptor);
+            if (this.BestOf > 1)
+            {
+                this.WriteObject(objectiveFunctionValues);
+            }
 
             int movesAccepted = 0;
             int movesRejected = 0;
-            float previousObjectiveFunction = acceptor.ObjectiveFunctionByIteration[0];
-            for (int index = 1; index < acceptor.ObjectiveFunctionByIteration.Count; ++index)
+            float previousObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[0];
+            for (int index = 1; index < bestAcceptor.ObjectiveFunctionByIteration.Count; ++index)
             {
-                float currentObjectiveFunction = acceptor.ObjectiveFunctionByIteration[index];
+                float currentObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[index];
                 if (currentObjectiveFunction != previousObjectiveFunction)
                 {
                     ++movesAccepted;
@@ -56,13 +78,13 @@ namespace FE640
                 previousObjectiveFunction = currentObjectiveFunction;
             }
 
-            this.WriteVerbose("threshold = {0:0.00#} -> {1:0.00#}, harvest target = {2:0}", acceptor.Thresholds.First(), acceptor.Thresholds.Last(), acceptor.TargetHarvestPerPeriod);
+            this.WriteVerbose("threshold = {0:0.00#} -> {1:0.00#}, harvest target = {2:0}", bestAcceptor.Thresholds.First(), bestAcceptor.Thresholds.Last(), bestAcceptor.TargetHarvestPerPeriod);
             int totalMoves = movesAccepted + movesRejected;
             this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (float)movesAccepted / (float)totalMoves, movesRejected, (float)movesRejected / (float)totalMoves);
-            this.WriteVerbose("Best objective function {0}.", acceptor.BestObjectiveFunction);
-            this.WriteVerbose("Ending objective function {0}.", acceptor.ObjectiveFunctionByIteration.Last());
-            float iterationsPerSecond = (float)acceptor.ObjectiveFunctionByIteration.Count / (float)annealingTime.TotalSeconds;
-            this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} Miterations/s).", acceptor.ObjectiveFunctionByIteration.Count, annealingTime, 1E-6F * iterationsPerSecond);
+            this.WriteVerbose("Best objective function {0}.", bestAcceptor.BestObjectiveFunction);
+            this.WriteVerbose("Ending objective function {0}.", bestAcceptor.ObjectiveFunctionByIteration.Last());
+            float iterationsPerSecond = (float)bestAcceptor.ObjectiveFunctionByIteration.Count / (float)acceptanceTime.TotalSeconds;
+            this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} Miterations/s).", bestAcceptor.ObjectiveFunctionByIteration.Count, acceptanceTime, 1E-6F * iterationsPerSecond);
         }
     }
 }

@@ -68,6 +68,10 @@ namespace FE640
                     }
                     float candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
                     float candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
+                    if (candidateObjectiveFunction < 0.0F)
+                    {
+                        candidateObjectiveFunction = -candidateObjectiveFunction;
+                    }
 
                     if (candidateObjectiveFunction < threshold * currentObjectiveFunction)
                     {
