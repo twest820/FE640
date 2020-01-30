@@ -9,6 +9,8 @@ namespace FE640
         public int BestOf { get; set; }
         [Parameter]
         public Nullable<float> TargetHarvestPerPeriod { get; set; }
+        [Parameter]
+        public double[] TargetHarvestWeights { get; set; }
         [Parameter(Mandatory = true)]
         public HarvestUnits Units { get; set; }
 
@@ -16,6 +18,7 @@ namespace FE640
         {
             this.BestOf = 1;
             this.TargetHarvestPerPeriod = null;
+            this.TargetHarvestWeights = null;
         }
 
         protected void WriteVerbose(string format, params object[] args)

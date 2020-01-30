@@ -13,30 +13,40 @@ namespace FE640.Test
         public void SimulatedAnnealing()
         {
             HarvestUnits units = new HarvestUnits("FE640_set1_20.xlsx");
-            SimulatedAnnealing annealer = new SimulatedAnnealing(units);
+            units.SetRandomSchedule();
+            SimulatedAnnealing annealer = new SimulatedAnnealing(units)
+            {
+                TargetHarvestPerPeriod = 440000.0,
+                TargetHarvestWeights = new double[] { 0.0, 1.4, 1.3, 1.2, 1.1, 1.0 }
+            };
             annealer.Anneal();
 
             annealer.RecalculateHarvestVolumes();
-            float endObjectiveFunction = annealer.ObjectiveFunctionByIteration.Last();
-            float recalculatedObjectiveFunction = annealer.RecalculateObjectiveFunction();
-            float objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
-            Assert.IsTrue(objectiveFunctionRatio > 0.999F);
-            Assert.IsTrue(objectiveFunctionRatio < 1.001F);
+            double endObjectiveFunction = annealer.ObjectiveFunctionByIteration.Last();
+            double recalculatedObjectiveFunction = annealer.RecalculateObjectiveFunction();
+            double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.99999);
+            Assert.IsTrue(objectiveFunctionRatio < 1.00001);
         }
 
         [TestMethod]
         public void ThresholdAccepting()
         {
             HarvestUnits units = new HarvestUnits("FE640_set1_20.xlsx");
-            ThresholdAccepting acceptor = new ThresholdAccepting(units);
+            units.SetRandomSchedule();
+            ThresholdAccepting acceptor = new ThresholdAccepting(units)
+            {
+                TargetHarvestPerPeriod = 440000.0,
+                TargetHarvestWeights = new double[] { 0.0, 1.4, 1.3, 1.2, 1.1, 1.0 }
+            };
             acceptor.Accept();
 
             acceptor.RecalculateHarvestVolumes();
-            float endObjectiveFunction = acceptor.ObjectiveFunctionByIteration.Last();
-            float recalculatedObjectiveFunction = acceptor.RecalculateObjectiveFunction();
-            float objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
-            Assert.IsTrue(objectiveFunctionRatio > 0.999F);
-            Assert.IsTrue(objectiveFunctionRatio < 1.001F);
+            double endObjectiveFunction = acceptor.ObjectiveFunctionByIteration.Last();
+            double recalculatedObjectiveFunction = acceptor.RecalculateObjectiveFunction();
+            double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.99999);
+            Assert.IsTrue(objectiveFunctionRatio < 1.00001);
         }
     }
 }

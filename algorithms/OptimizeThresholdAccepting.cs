@@ -11,7 +11,7 @@ namespace FE640
         [Parameter]
         public Nullable<int> IterationsPerThreshold { get; set; }
         [Parameter]
-        public List<float> Thresholds { get; set; }
+        public List<double> Thresholds { get; set; }
 
         public OptimizeThresholdAccepting()
         {
@@ -30,6 +30,10 @@ namespace FE640
             {
                 acceptor.TargetHarvestPerPeriod = this.TargetHarvestPerPeriod.Value;
             }
+            if (this.TargetHarvestWeights != null)
+            {
+                acceptor.TargetHarvestWeights = this.TargetHarvestWeights;
+            }
             if (this.Thresholds != null)
             {
                 acceptor.Thresholds.Clear();
@@ -42,7 +46,7 @@ namespace FE640
         {
             ThresholdAccepting bestAcceptor = null;
             TimeSpan acceptanceTime;
-            List<float> objectiveFunctionValues = new List<float>();
+            List<double> objectiveFunctionValues = new List<double>();
             for (int iteration = 0; iteration < this.BestOf; ++iteration)
             {
                 ThresholdAccepting currentAcceptor = this.CreateAcceptor();
@@ -63,10 +67,10 @@ namespace FE640
 
             int movesAccepted = 0;
             int movesRejected = 0;
-            float previousObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[0];
+            double previousObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[0];
             for (int index = 1; index < bestAcceptor.ObjectiveFunctionByIteration.Count; ++index)
             {
-                float currentObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[index];
+                double currentObjectiveFunction = bestAcceptor.ObjectiveFunctionByIteration[index];
                 if (currentObjectiveFunction != previousObjectiveFunction)
                 {
                     ++movesAccepted;
@@ -80,10 +84,10 @@ namespace FE640
 
             this.WriteVerbose("threshold = {0:0.00#} -> {1:0.00#}, harvest target = {2:0}", bestAcceptor.Thresholds.First(), bestAcceptor.Thresholds.Last(), bestAcceptor.TargetHarvestPerPeriod);
             int totalMoves = movesAccepted + movesRejected;
-            this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (float)movesAccepted / (float)totalMoves, movesRejected, (float)movesRejected / (float)totalMoves);
+            this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (double)movesAccepted / (double)totalMoves, movesRejected, (double)movesRejected / (double)totalMoves);
             this.WriteVerbose("Best objective function {0}.", bestAcceptor.BestObjectiveFunction);
             this.WriteVerbose("Ending objective function {0}.", bestAcceptor.ObjectiveFunctionByIteration.Last());
-            float iterationsPerSecond = (float)bestAcceptor.ObjectiveFunctionByIteration.Count / (float)acceptanceTime.TotalSeconds;
+            double iterationsPerSecond = (double)bestAcceptor.ObjectiveFunctionByIteration.Count / (double)acceptanceTime.TotalSeconds;
             this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} Miterations/s).", bestAcceptor.ObjectiveFunctionByIteration.Count, acceptanceTime, 1E-6F * iterationsPerSecond);
         }
     }

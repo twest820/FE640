@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FE640
 {
@@ -8,16 +9,17 @@ namespace FE640
         private readonly Random pseudorandom;
         private readonly byte[] pseudorandomBytes;
         private int pseudorandomByteIndex;
-        private float targetHarvestPerPeriod;
+        private double targetHarvestPerPeriod;
+        private double[] targetHarvestWeights;
 
         protected HarvestUnits Units { get; private set; }
 
-        public float BestObjectiveFunction { get; protected set; }
-        public float[] BestHarvestByPeriod { get; protected set; }
+        public double BestObjectiveFunction { get; protected set; }
+        public double[] BestHarvestByPeriod { get; protected set; }
         public int[] BestHarvestPeriods { get; protected set; }
-        public float[] CurrentHarvestByPeriod { get; protected set; }
+        public double[] CurrentHarvestByPeriod { get; protected set; }
         public int[] CurrentHarvestPeriods { get; protected set; }
-        public List<float> ObjectiveFunctionByIteration { get; protected set; }
+        public List<double> ObjectiveFunctionByIteration { get; protected set; }
 
         protected Heuristic(HarvestUnits units)
         {
@@ -36,15 +38,16 @@ namespace FE640
             // Cut periods are therefore 1...n and require array allocation accordingly. This simplifies the inner annealing loop
             // as no special logic is needed for handling a special no cut value such as -1.
             int periods = this.Units.YieldByPeriod.GetLength(1) - 1;
-            this.BestHarvestByPeriod = new float[periods + 1];
-            this.CurrentHarvestByPeriod = new float[periods + 1];
+            this.BestHarvestByPeriod = new double[periods + 1];
+            this.CurrentHarvestByPeriod = new double[periods + 1];
+            this.targetHarvestWeights = Enumerable.Repeat(1.0, periods + 1).ToArray();
 
             this.targetHarvestPerPeriod = this.GetDefaultTargetHarvestPerPeriod();
             this.RecalculateHarvestVolumes();
             this.BestObjectiveFunction = this.RecalculateObjectiveFunction();
         }
 
-        public float TargetHarvestPerPeriod
+        public double TargetHarvestPerPeriod
         {
             get
             {
@@ -58,21 +61,35 @@ namespace FE640
             }
         }
 
-        protected float GetDefaultTargetHarvestPerPeriod()
+        public double[] TargetHarvestWeights 
+        { 
+            get
+            {
+                return this.targetHarvestWeights;
+            }
+            set
+            {
+                this.targetHarvestWeights = value;
+                this.BestObjectiveFunction = this.RecalculateObjectiveFunction();
+                this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
+            }
+        }
+
+        protected double GetDefaultTargetHarvestPerPeriod()
         {
             int periods = this.Units.YieldByPeriod.GetLength(1) - 1;
-            float maximumYield = 0.0F;
+            double maximumYield = 0.0F;
             for (int unitIndex = 0; unitIndex < this.Units.Count; ++unitIndex)
             {
                 maximumYield += this.Units.YieldByPeriod[unitIndex, periods];
             }
 
-            return maximumYield / (float)periods;
+            return maximumYield / (double)periods;
         }
 
-        protected float GetPseudorandomByteAsFloat()
+        protected double GetPseudorandomByteAsFloat()
         {
-            float byteAsFloat = this.pseudorandomBytes[this.pseudorandomByteIndex];
+            double byteAsFloat = this.pseudorandomBytes[this.pseudorandomByteIndex];
             ++this.pseudorandomByteIndex;
 
             // if the last available byte was used, ensure more bytes are available
@@ -85,7 +102,7 @@ namespace FE640
             return byteAsFloat;
         }
 
-        protected float GetTwoPseudorandomBytesAsFloat()
+        protected double GetTwoPseudorandomBytesAsFloat()
         {
             // ensure two bytes are available
             if (this.pseudorandomByteIndex > this.pseudorandomBytes.Length - 2)
@@ -95,7 +112,7 @@ namespace FE640
             }
 
             // get bytes
-            float bytesAsFloat = (float)BitConverter.ToUInt16(this.pseudorandomBytes, this.pseudorandomByteIndex);
+            double bytesAsFloat = (double)BitConverter.ToUInt16(this.pseudorandomBytes, this.pseudorandomByteIndex);
             this.pseudorandomByteIndex += 2;
 
             // if the last available byte was used, ensure more bytes are available
@@ -124,15 +141,16 @@ namespace FE640
             Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
         }
 
-        public float RecalculateObjectiveFunction()
+        public double RecalculateObjectiveFunction()
         {
             // find objective function value
-            float objectiveFunction = 0.0F;
+            double objectiveFunction = 0.0F;
             for (int periodIndex = 1; periodIndex < this.CurrentHarvestByPeriod.Length; ++periodIndex)
             {
-                float harvest = this.CurrentHarvestByPeriod[periodIndex];
-                float differenceFromTarget = this.TargetHarvestPerPeriod - harvest;
-                objectiveFunction += differenceFromTarget * differenceFromTarget;
+                double harvest = this.CurrentHarvestByPeriod[periodIndex];
+                double differenceFromTarget = this.TargetHarvestPerPeriod - harvest;
+                double weight = this.TargetHarvestWeights[periodIndex];
+                objectiveFunction += weight * differenceFromTarget * differenceFromTarget;
             }
             return objectiveFunction;
         }

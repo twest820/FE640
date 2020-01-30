@@ -7,15 +7,15 @@ namespace FE640
     public class ThresholdAccepting : Heuristic
     {
         public int IterationsPerThreshold { get; set; }
-        public List<float> Thresholds { get; private set; }
+        public List<double> Thresholds { get; private set; }
 
         public ThresholdAccepting(HarvestUnits units)
             : base(units)
         {
             this.IterationsPerThreshold = 5 * units.Count;
-            this.Thresholds = new List<float>() { 1.1F, 1.08F, 1.05F, 1.03F, 1.01F, 1.0F };
+            this.Thresholds = new List<double>() { 1.1F, 1.08F, 1.05F, 1.03F, 1.01F, 1.0F };
 
-            this.ObjectiveFunctionByIteration = new List<float>(this.Thresholds.Count * this.IterationsPerThreshold)
+            this.ObjectiveFunctionByIteration = new List<double>(this.Thresholds.Count * this.IterationsPerThreshold)
             {
                 this.BestObjectiveFunction
             };
@@ -30,12 +30,12 @@ namespace FE640
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            float currentObjectiveFunction = this.BestObjectiveFunction;
-            float harvestPeriodScalingFactor = ((float)this.CurrentHarvestByPeriod.Length - 1.01F) / (float)byte.MaxValue;
+            double currentObjectiveFunction = this.BestObjectiveFunction;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
-            float unitIndexScalingFactor = ((float)this.Units.Count - 0.01F) / (float)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
 
-            foreach (float threshold in this.Thresholds)
+            foreach (double threshold in this.Thresholds)
             {
                 for (int iteration = 0; iteration < this.IterationsPerThreshold; ++iteration)
                 {
@@ -48,26 +48,28 @@ namespace FE640
                     }
                     Debug.Assert(candidateHarvestPeriod > 0);
 
-                    float candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
-                    float candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
-                    float currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
-                    float currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
+                    double candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
+                    double candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
+                    double currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+                    double currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
 
                     // default to move from uncut to cut case
-                    float candidateDeviations = (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
-                                                (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
-                    float currentDeviations = (this.TargetHarvestPerPeriod - candidateHarvest) *
-                                              (this.TargetHarvestPerPeriod - candidateHarvest);
+                    double candidateWeight = this.TargetHarvestWeights[candidateHarvestPeriod];
+                    double candidateDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
+                                                                   (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
+                    double currentDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest) *
+                                                                 (this.TargetHarvestPerPeriod - candidateHarvest);
                     // if this is a move between periods then include objective function terms for the unit's current harvest period
                     if (currentHarvestPeriod > 0)
                     {
-                        candidateDeviations += (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
-                                               (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
-                        currentDeviations += (this.TargetHarvestPerPeriod - currentHarvest) *
-                                             (this.TargetHarvestPerPeriod - currentHarvest);
+                        double currentWeight = this.TargetHarvestWeights[currentHarvestPeriod];
+                        candidateDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
+                                                               (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
+                        currentDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest) *
+                                                             (this.TargetHarvestPerPeriod - currentHarvest);
                     }
-                    float candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
-                    float candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
+                    double candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
+                    double candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
                     if (candidateObjectiveFunction < 0.0F)
                     {
                         candidateObjectiveFunction = -candidateObjectiveFunction;

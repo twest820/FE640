@@ -41,7 +41,7 @@ namespace FE640
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
                     if (heuristic.ObjectiveFunctionByIteration.Count > period)
                     {
-                        float objectiveFunction = heuristic.BestHarvestByPeriod[period];
+                        double objectiveFunction = heuristic.BestHarvestByPeriod[period];
                         line.Append(",");
                         line.Append(objectiveFunction.ToString(CultureInfo.InvariantCulture));
                     }

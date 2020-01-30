@@ -6,9 +6,9 @@ namespace FE640
 {
     public class SimulatedAnnealing : Heuristic
     {
-        public float Alpha { get; set; }
-        public float FinalTemperature { get; set; }
-        public float InitialTemperature { get; set; }
+        public double Alpha { get; set; }
+        public double FinalTemperature { get; set; }
+        public double InitialTemperature { get; set; }
         public int IterationsPerTemperature { get; set; }
 
         public SimulatedAnnealing(HarvestUnits units)
@@ -21,10 +21,10 @@ namespace FE640
             // typical i5-4200U interation velocities are around 4 Miterations/s for debug and 7.3 Miterations/s for retail
             // Default to 1M iterations as a reasonable runtime for unit testing.
             int defaultIterations = 1000 * 1000;
-            float temperatureSteps = (float)(defaultIterations / this.IterationsPerTemperature);
-            this.Alpha = 1.0F / (float)Math.Pow(this.InitialTemperature / this.FinalTemperature, 1.0F / temperatureSteps);
+            double temperatureSteps = (double)(defaultIterations / this.IterationsPerTemperature);
+            this.Alpha = 1.0F / (double)Math.Pow(this.InitialTemperature / this.FinalTemperature, 1.0F / temperatureSteps);
 
-            this.ObjectiveFunctionByIteration = new List<float>(defaultIterations)
+            this.ObjectiveFunctionByIteration = new List<double>(defaultIterations)
             {
                 this.BestObjectiveFunction
             };
@@ -35,14 +35,14 @@ namespace FE640
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            float acceptanceProbabilityScalingFactor = 1.0F / (float)byte.MaxValue;
-            float currentObjectiveFunction = this.BestObjectiveFunction;
-            float harvestPeriodScalingFactor = ((float)this.CurrentHarvestByPeriod.Length - 1.01F) / (float)byte.MaxValue;
+            double acceptanceProbabilityScalingFactor = 1.0F / (double)byte.MaxValue;
+            double currentObjectiveFunction = this.BestObjectiveFunction;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
-            float temperature = this.InitialTemperature;
-            float unitIndexScalingFactor = ((float)this.Units.Count - 0.01F) / (float)UInt16.MaxValue;
+            double temperature = this.InitialTemperature;
+            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
 
-            for (float currentTemperature = this.InitialTemperature; currentTemperature > this.FinalTemperature; currentTemperature *= this.Alpha)
+            for (double currentTemperature = this.InitialTemperature; currentTemperature > this.FinalTemperature; currentTemperature *= this.Alpha)
             {
                 for (int iterationAtTemperature = 0; iterationAtTemperature < this.IterationsPerTemperature; ++iterationAtTemperature)
                 {
@@ -55,37 +55,39 @@ namespace FE640
                     }
                     Debug.Assert(candidateHarvestPeriod > 0);
 
-                    float candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
-                    float candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
-                    float currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
-                    float currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
+                    double candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
+                    double candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
+                    double currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+                    double currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
 
                     // default to move from uncut to cut case
-                    float candidateDeviations = (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
-                                                (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
-                    float currentDeviations = (this.TargetHarvestPerPeriod - candidateHarvest) *
-                                              (this.TargetHarvestPerPeriod - candidateHarvest);
+                    double candidateWeight = this.TargetHarvestWeights[candidateHarvestPeriod];
+                    double candidateDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
+                                                                   (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
+                    double currentDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest) *
+                                                                 (this.TargetHarvestPerPeriod - candidateHarvest);
                     // if this is a move between periods then include objective function terms for the unit's current harvest period
                     if (currentHarvestPeriod > 0)
                     {
-                        candidateDeviations += (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
-                                               (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
-                        currentDeviations += (this.TargetHarvestPerPeriod - currentHarvest) *
-                                             (this.TargetHarvestPerPeriod - currentHarvest);
+                        double currentWeight = this.TargetHarvestWeights[currentHarvestPeriod];
+                        candidateDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
+                                                               (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
+                        currentDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest) *
+                                                             (this.TargetHarvestPerPeriod - currentHarvest);
                     }
-                    float candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
+                    double candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
                     // TODO: if needed, support zero crossing of objective function
 
                     bool acceptMove = candidateObjectiveFunctionChange < 0.0F;
                     if (acceptMove == false)
                     {
-                        float exponent = 0.001F * candidateObjectiveFunctionChange / temperature; // why 0.001?
+                        double exponent = 0.001F * candidateObjectiveFunctionChange / temperature; // why 0.001?
                         if (exponent < 9.0F)
                         {
                             // exponent is small enough not to round acceptance probabilities down to zero
                             // 1/e^9 is an acceptance probability of 0.012%, or 1 in 8095 moves.
-                            float acceptanceProbability = 1.0F / (float)Math.Exp(exponent);
-                            float moveProbability = acceptanceProbabilityScalingFactor * this.GetPseudorandomByteAsFloat();
+                            double acceptanceProbability = 1.0F / (double)Math.Exp(exponent);
+                            double moveProbability = acceptanceProbabilityScalingFactor * this.GetPseudorandomByteAsFloat();
                             if (moveProbability < acceptanceProbability)
                             {
                                 acceptMove = true;

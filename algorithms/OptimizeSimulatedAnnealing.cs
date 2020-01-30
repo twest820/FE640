@@ -9,11 +9,11 @@ namespace FE640
     public class OptimizeSimulatedAnnealing : OptimizeCmdlet
     {
         [Parameter]
-        public Nullable<float> Alpha { get; set; }
+        public Nullable<double> Alpha { get; set; }
         [Parameter]
-        public Nullable<float> FinalTemperature { get; set; }
+        public Nullable<double> FinalTemperature { get; set; }
         [Parameter]
-        public Nullable<float> InitialTemperature { get; set; }
+        public Nullable<double> InitialTemperature { get; set; }
         [Parameter]
         public Nullable<int> IterationsPerTemperature { get; set; }
 
@@ -48,13 +48,17 @@ namespace FE640
             {
                 annealer.TargetHarvestPerPeriod = this.TargetHarvestPerPeriod.Value;
             }
+            if (this.TargetHarvestWeights != null)
+            {
+                annealer.TargetHarvestWeights = this.TargetHarvestWeights;
+            }
             return annealer;
         }
 
         protected override void ProcessRecord()
         {
             SimulatedAnnealing bestAnnealer = null;
-            List<float> objectiveFunctionValues = new List<float>();
+            List<double> objectiveFunctionValues = new List<double>();
             TimeSpan annealingTime;
             for (int iteration = 0; iteration < this.BestOf; ++iteration)
             {
@@ -76,10 +80,10 @@ namespace FE640
 
             int movesAccepted = 0;
             int movesRejected = 0;
-            float previousObjectiveFunction = bestAnnealer.ObjectiveFunctionByIteration[0];
+            double previousObjectiveFunction = bestAnnealer.ObjectiveFunctionByIteration[0];
             for (int index = 1; index < bestAnnealer.ObjectiveFunctionByIteration.Count; ++index)
             {
-                float currentObjectiveFunction = bestAnnealer.ObjectiveFunctionByIteration[index];
+                double currentObjectiveFunction = bestAnnealer.ObjectiveFunctionByIteration[index];
                 if (currentObjectiveFunction != previousObjectiveFunction)
                 {
                     ++movesAccepted;
@@ -93,10 +97,10 @@ namespace FE640
 
             this.WriteVerbose("T = {0:0} -> {1:0}, α = {2:0.0000}, harvest target = {3:0}", bestAnnealer.InitialTemperature, bestAnnealer.FinalTemperature, bestAnnealer.Alpha, bestAnnealer.TargetHarvestPerPeriod);
             int totalMoves = movesAccepted + movesRejected;
-            this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (float)movesAccepted / (float)totalMoves, movesRejected, (float)movesRejected / (float)totalMoves);
+            this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (double)movesAccepted / (double)totalMoves, movesRejected, (double)movesRejected / (double)totalMoves);
             this.WriteVerbose("Best objective function {0}.", bestAnnealer.BestObjectiveFunction);
             this.WriteVerbose("Ending objective function {0}.", bestAnnealer.ObjectiveFunctionByIteration.Last());
-            float iterationsPerSecond = (float)bestAnnealer.ObjectiveFunctionByIteration.Count / (float)annealingTime.TotalSeconds;
+            double iterationsPerSecond = (double)bestAnnealer.ObjectiveFunctionByIteration.Count / (double)annealingTime.TotalSeconds;
             this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} Miterations/s).", bestAnnealer.ObjectiveFunctionByIteration.Count, annealingTime, 1E-6F * iterationsPerSecond);
         }
     }

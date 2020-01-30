@@ -48,7 +48,7 @@ namespace FE640
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
                     if (heuristic.ObjectiveFunctionByIteration.Count > iteration)
                     {
-                        float objectiveFunction = heuristic.ObjectiveFunctionByIteration[iteration];
+                        double objectiveFunction = heuristic.ObjectiveFunctionByIteration[iteration];
                         line.Append(",");
                         line.Append(objectiveFunction.ToString(CultureInfo.InvariantCulture));
                     }
