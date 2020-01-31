@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace FE640
@@ -69,12 +70,53 @@ namespace FE640
             get { return this.HarvestPeriods.Length; }
         }
 
+        public void SetLoopSchedule(int loopRate)
+        {
+            if (loopRate < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(loopRate));
+            }
+
+            int periods = this.YieldByPeriod.GetLength(1) - 1;
+            for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
+            {
+                this.HarvestPeriods[unitIndex] = 1 + (unitIndex / loopRate) % periods;
+            }
+        }
+
         public void SetRandomSchedule()
         {
             Random random = new Random();
             for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
             {
                 this.HarvestPeriods[unitIndex] = random.Next(1, this.YieldByPeriod.GetLength(1));
+            }
+        }
+
+        public void SetRandomSchedule(IList<double> harvestProbabilityByPeriod)
+        {
+            int periods = this.YieldByPeriod.GetLength(1) - 1;
+            if ((harvestProbabilityByPeriod.Count != periods) || (harvestProbabilityByPeriod.Sum() != 1.0F))
+            {
+                throw new ArgumentOutOfRangeException(nameof(harvestProbabilityByPeriod));
+            }
+
+            Random random = new Random();
+            for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
+            {
+                double probability = random.NextDouble();
+                double cumulativeProbability = 0.0;
+                int harvestPeriod = 1;
+                for (int periodIndex = 0; periodIndex < harvestProbabilityByPeriod.Count; ++periodIndex)
+                {
+                    cumulativeProbability += harvestProbabilityByPeriod[periodIndex];
+                    if (probability <= cumulativeProbability)
+                    {
+                        break;
+                    }
+                    ++harvestPeriod;
+                }
+                this.HarvestPeriods[unitIndex] = harvestPeriod;
             }
         }
     }

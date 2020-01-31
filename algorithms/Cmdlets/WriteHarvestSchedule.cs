@@ -42,9 +42,9 @@ namespace FE640.Cmdlets
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
                     if (heuristic.ObjectiveFunctionByIteration.Count > unitIndex)
                     {
-                        float objectiveFunction = heuristic.BestHarvestPeriods[unitIndex];
+                        int harvestPeriod = heuristic.BestHarvestPeriods[unitIndex];
                         line.Append(",");
-                        line.Append(objectiveFunction.ToString(CultureInfo.InvariantCulture));
+                        line.Append(harvestPeriod.ToString(CultureInfo.InvariantCulture));
                     }
                 }
 

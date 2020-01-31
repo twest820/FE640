@@ -6,14 +6,14 @@ namespace FE640.Heuristics
 {
     public class GreatDeluge : Heuristic
     {
-        public double InitialWaterLevel { get; set; }
+        public double InitialWaterLevelMultiplier { get; set; }
         public double RainRate { get; set; }
         public int StopAfter { get; set; }
 
         public GreatDeluge(HarvestUnits units)
             : base(units)
         {
-            this.InitialWaterLevel = 1.2 * this.BestObjectiveFunction;
+            this.InitialWaterLevelMultiplier = 1.2;
             this.RainRate = 0.9999;
             this.StopAfter = 100000;
 
@@ -39,7 +39,7 @@ namespace FE640.Heuristics
             int movesSinceBestObjectiveImproved = 0;
             double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
 
-            for (double waterLevel = this.InitialWaterLevel; waterLevel > 1.0; waterLevel *= this.RainRate)
+            for (double waterLevel = this.InitialWaterLevelMultiplier * this.BestObjectiveFunction; waterLevel > 1.0; waterLevel *= this.RainRate)
             {
                 int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
                 int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];

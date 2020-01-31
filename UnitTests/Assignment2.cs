@@ -1,5 +1,6 @@
 ﻿using FE640.Heuristics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace FE640.Test
@@ -50,7 +51,7 @@ namespace FE640.Test
         public void TabuSearch()
         {
             HarvestUnits units = new HarvestUnits("FE640_set2_20.xlsx");
-            units.SetRandomSchedule();
+            units.SetRandomSchedule(new List<double>() { 0.30, 0.25, 0.20, 0.15, 0.10 });
             TabuSearch tabu = new TabuSearch(units, 100)
             {
                 TargetHarvestPerPeriod = 25000

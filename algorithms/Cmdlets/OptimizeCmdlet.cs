@@ -11,7 +11,11 @@ namespace FE640.Cmdlets
         [Parameter]
         public int BestOf { get; set; }
         [Parameter]
-        public SwitchParameter Randomize { get; set; }
+        public List<double> HarvestProbabilityByPeriod { get; set; }
+        [Parameter]
+        public SwitchParameter LoopHarvestPeriods { get; set; }
+        [Parameter]
+        public SwitchParameter UniformHarvestProbability { get; set; }
         [Parameter]
         public Nullable<float> TargetHarvestPerPeriod { get; set; }
         [Parameter]
@@ -22,6 +26,9 @@ namespace FE640.Cmdlets
         public OptimizeCmdlet()
         {
             this.BestOf = 1;
+            this.HarvestProbabilityByPeriod = null;
+            this.LoopHarvestPeriods = false;
+            this.UniformHarvestProbability = false;
             this.TargetHarvestPerPeriod = null;
             this.TargetHarvestWeights = null;
         }
@@ -48,7 +55,15 @@ namespace FE640.Cmdlets
             List<double> objectiveFunctionValues = new List<double>();
             for (int iteration = 0; iteration < this.BestOf; ++iteration)
             {
-                if (this.Randomize)
+                if (this.HarvestProbabilityByPeriod != null)
+                {
+                    this.Units.SetRandomSchedule(this.HarvestProbabilityByPeriod);
+                }
+                else if (this.LoopHarvestPeriods)
+                {
+                    this.Units.SetLoopSchedule(iteration + 1);
+                }
+                else if (this.UniformHarvestProbability)
                 {
                     this.Units.SetRandomSchedule();
                 }
@@ -62,6 +77,11 @@ namespace FE640.Cmdlets
                 if ((bestHeuristic == null) || (currentHeuristic.BestObjectiveFunction < bestHeuristic.BestObjectiveFunction))
                 {
                     bestHeuristic = currentHeuristic;
+                }
+
+                if (this.Stopping)
+                {
+                    break;
                 }
             }
 

@@ -8,7 +8,7 @@ namespace FE640.Cmdlets
     public class OptimizeGreatDeluge : OptimizeCmdlet
     {
         [Parameter]
-        public Nullable<double> InitialWaterLevel { get; set; }
+        public Nullable<double> InitialWaterLevelMultiplier { get; set; }
         [Parameter]
         public Nullable<double> RainRate { get; set; }
         [Parameter]
@@ -16,7 +16,7 @@ namespace FE640.Cmdlets
 
         public OptimizeGreatDeluge()
         {
-            this.InitialWaterLevel = null;
+            this.InitialWaterLevelMultiplier = null;
             this.RainRate = null;
             this.StopAfter = null;
         }
@@ -24,9 +24,9 @@ namespace FE640.Cmdlets
         protected override Heuristic CreateHeuristic()
         {
             GreatDeluge deluge = new GreatDeluge(this.Units);
-            if (this.InitialWaterLevel.HasValue)
+            if (this.InitialWaterLevelMultiplier.HasValue)
             {
-                deluge.InitialWaterLevel = this.InitialWaterLevel.Value;
+                deluge.InitialWaterLevelMultiplier = this.InitialWaterLevelMultiplier.Value;
             }
             if (this.RainRate.HasValue)
             {

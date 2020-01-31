@@ -26,7 +26,7 @@ namespace FE640.Heuristics
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            double[,] candidateObjectiveFunctions = new double[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
+            //double[,] candidateObjectiveFunctions = new double[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
             int[,] remainingTabuTenures = new int[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
             double currentObjectiveFunction = this.BestObjectiveFunction;
             int movesSinceBestObjectiveImproved = 0;
@@ -66,7 +66,7 @@ namespace FE640.Heuristics
                         }
 
                         // not needed, but potentially useful for debugging
-                        candidateObjectiveFunctions[unitIndex, periodIndex] = candidateObjectiveFunction;
+                        //candidateObjectiveFunctions[unitIndex, periodIndex] = candidateObjectiveFunction;
                         if (tabuTenure > 0)
                         {
                             remainingTabuTenures[unitIndex, periodIndex] = tabuTenure - 1;
