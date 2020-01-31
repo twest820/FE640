@@ -1,6 +1,6 @@
 ﻿using System.Management.Automation;
 
-namespace FE640
+namespace FE640.Cmdlets
 {
     [Cmdlet(VerbsCommon.Get, "Units")]
     public class GetUnits : Cmdlet

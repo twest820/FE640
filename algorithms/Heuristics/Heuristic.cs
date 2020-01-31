@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace FE640
+namespace FE640.Heuristics
 {
-    public class Heuristic
+    public abstract class Heuristic
     {
         private readonly Random pseudorandom;
         private readonly byte[] pseudorandomBytes;
@@ -84,7 +84,7 @@ namespace FE640
                 maximumYield += this.Units.YieldByPeriod[unitIndex, periods];
             }
 
-            return maximumYield / (double)periods;
+            return 0.6 * maximumYield / (double)periods;
         }
 
         protected double GetPseudorandomByteAsFloat()
@@ -154,5 +154,7 @@ namespace FE640
             }
             return objectiveFunction;
         }
+
+        public abstract TimeSpan Run();
     }
 }

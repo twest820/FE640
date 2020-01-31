@@ -2,49 +2,40 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace FE640
+namespace FE640.Heuristics
 {
-    public class SimulatedAnnealing : Heuristic
+    public class ThresholdAccepting : Heuristic
     {
-        public double Alpha { get; set; }
-        public double FinalTemperature { get; set; }
-        public double InitialTemperature { get; set; }
-        public int IterationsPerTemperature { get; set; }
+        public int IterationsPerThreshold { get; set; }
+        public List<double> Thresholds { get; private set; }
 
-        public SimulatedAnnealing(HarvestUnits units)
-            :  base(units)
+        public ThresholdAccepting(HarvestUnits units)
+            : base(units)
         {
-            this.FinalTemperature = 100.0F;
-            this.InitialTemperature = 10000.0F;
-            this.IterationsPerTemperature = 10;
+            this.IterationsPerThreshold = 5 * units.Count;
+            this.Thresholds = new List<double>() { 1.1F, 1.08F, 1.05F, 1.03F, 1.01F, 1.0F };
 
-            // typical i5-4200U interation velocities are around 4 Miterations/s for debug and 7.3 Miterations/s for retail
-            // Default to 1M iterations as a reasonable runtime for unit testing.
-            int defaultIterations = 1000 * 1000;
-            double temperatureSteps = (double)(defaultIterations / this.IterationsPerTemperature);
-            this.Alpha = 1.0F / (double)Math.Pow(this.InitialTemperature / this.FinalTemperature, 1.0F / temperatureSteps);
-
-            this.ObjectiveFunctionByIteration = new List<double>(defaultIterations)
+            this.ObjectiveFunctionByIteration = new List<double>(this.Thresholds.Count * this.IterationsPerThreshold)
             {
                 this.BestObjectiveFunction
             };
         }
 
-        public TimeSpan Anneal()
+        // very similar code to SimulatedAnnealing.Anneal()
+        // Differences are all in move acceptance.
+        public override TimeSpan Run()
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            double acceptanceProbabilityScalingFactor = 1.0F / (double)byte.MaxValue;
             double currentObjectiveFunction = this.BestObjectiveFunction;
             double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
-            double temperature = this.InitialTemperature;
             double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
 
-            for (double currentTemperature = this.InitialTemperature; currentTemperature > this.FinalTemperature; currentTemperature *= this.Alpha)
+            foreach (double threshold in this.Thresholds)
             {
-                for (int iterationAtTemperature = 0; iterationAtTemperature < this.IterationsPerTemperature; ++iterationAtTemperature)
+                for (int iteration = 0; iteration < this.IterationsPerThreshold; ++iteration)
                 {
                     int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
                     int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
@@ -76,31 +67,18 @@ namespace FE640
                                                              (this.TargetHarvestPerPeriod - currentHarvest);
                     }
                     double candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
-                    // TODO: if needed, support zero crossing of objective function
-
-                    bool acceptMove = candidateObjectiveFunctionChange < 0.0F;
-                    if (acceptMove == false)
+                    double candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
+                    if (candidateObjectiveFunction < 0.0F)
                     {
-                        double exponent = 0.001F * candidateObjectiveFunctionChange / temperature; // why 0.001?
-                        if (exponent < 9.0F)
-                        {
-                            // exponent is small enough not to round acceptance probabilities down to zero
-                            // 1/e^9 is an acceptance probability of 0.012%, or 1 in 8095 moves.
-                            double acceptanceProbability = 1.0F / (double)Math.Exp(exponent);
-                            double moveProbability = acceptanceProbabilityScalingFactor * this.GetPseudorandomByteAsFloat();
-                            if (moveProbability < acceptanceProbability)
-                            {
-                                acceptMove = true;
-                            }
-                        }
+                        candidateObjectiveFunction = -candidateObjectiveFunction;
                     }
 
-                    if (acceptMove)
+                    if (candidateObjectiveFunction < threshold * currentObjectiveFunction)
                     {
                         this.CurrentHarvestPeriods[unitIndex] = candidateHarvestPeriod;
                         this.CurrentHarvestByPeriod[candidateHarvestPeriod] += candidateYield;
                         this.CurrentHarvestByPeriod[currentHarvestPeriod] -= currentYield;
-                        currentObjectiveFunction += candidateObjectiveFunctionChange;
+                        currentObjectiveFunction = candidateObjectiveFunction;
                         ++movesSinceBestObjectiveImproved;
                         Debug.Assert(this.CurrentHarvestByPeriod[candidateHarvestPeriod] >= 0.0F);
                         Debug.Assert(this.CurrentHarvestByPeriod[currentHarvestPeriod] >= 0.0F);

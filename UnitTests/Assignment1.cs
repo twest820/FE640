@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using FE640.Heuristics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 
 namespace FE640.Test
@@ -7,8 +8,6 @@ namespace FE640.Test
     [DeploymentItem("FE640_set1_20.xlsx")]
     public class Assignment1
     {
-        public TestContext TestContext { get; set; }
-
         [TestMethod]
         public void SimulatedAnnealing()
         {
@@ -19,7 +18,7 @@ namespace FE640.Test
                 TargetHarvestPerPeriod = 440000.0,
                 TargetHarvestWeights = new double[] { 0.0, 1.4, 1.3, 1.2, 1.1, 1.0 }
             };
-            annealer.Anneal();
+            annealer.Run();
 
             annealer.RecalculateHarvestVolumes();
             double endObjectiveFunction = annealer.ObjectiveFunctionByIteration.Last();
@@ -39,7 +38,7 @@ namespace FE640.Test
                 TargetHarvestPerPeriod = 440000.0,
                 TargetHarvestWeights = new double[] { 0.0, 1.4, 1.3, 1.2, 1.1, 1.0 }
             };
-            acceptor.Accept();
+            acceptor.Run();
 
             acceptor.RecalculateHarvestVolumes();
             double endObjectiveFunction = acceptor.ObjectiveFunctionByIteration.Last();

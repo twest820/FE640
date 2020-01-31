@@ -1,47 +1,55 @@
-﻿using System;
+﻿using FE640.Heuristics;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Management.Automation;
 using System.Text;
 
-namespace FE640
+namespace FE640.Cmdlets
 {
-    [Cmdlet(VerbsCommunications.Write, "Harvest")]
-    public class WriteHarvest : Cmdlet
+    [Cmdlet(VerbsCommunications.Write, "Objective")]
+    public class WriteObjective : Cmdlet
     {
         [Parameter(Mandatory = true)]
         public string CsvFile;
         [Parameter(Mandatory = true)]
         public List<Heuristic> Heuristics { get; set; }
+        [Parameter(HelpMessage = "Number of iterations between CSV file lines. Default is 100, which prints every 100th objective function value.")]
+        public int Step;
+
+        public WriteObjective()
+        {
+            this.Step = 100;
+        }
 
         protected override void ProcessRecord()
         {
             using FileStream stream = new FileStream(this.CsvFile, FileMode.Create, FileAccess.Write, FileShare.Read);
             using StreamWriter writer = new StreamWriter(stream);
 
-            StringBuilder line = new StringBuilder("unit");
-            int maxPeriod = 0;
+            StringBuilder line = new StringBuilder("iteration");
+            int maxIteration = 0;
             for (int heuristicIndex = 0; heuristicIndex < this.Heuristics.Count; ++heuristicIndex)
             {
                 line.AppendFormat(CultureInfo.InvariantCulture, ",SA{0}", heuristicIndex);
 
                 Heuristic heuristic = this.Heuristics[heuristicIndex];
-                maxPeriod = Math.Max(maxPeriod, heuristic.BestHarvestByPeriod.Length);
+                maxIteration = Math.Max(maxIteration, heuristic.ObjectiveFunctionByIteration.Count);
             }
             writer.WriteLine(line);
 
-            for (int period = 0; period < maxPeriod; ++period)
+            for (int iteration = 0; iteration < maxIteration; iteration += this.Step)
             {
                 line.Clear();
-                line.Append(period);
+                line.Append(iteration);
 
                 for (int heuristicIndex = 0; heuristicIndex < this.Heuristics.Count; ++heuristicIndex)
                 {
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
-                    if (heuristic.ObjectiveFunctionByIteration.Count > period)
+                    if (heuristic.ObjectiveFunctionByIteration.Count > iteration)
                     {
-                        double objectiveFunction = heuristic.BestHarvestByPeriod[period];
+                        double objectiveFunction = heuristic.ObjectiveFunctionByIteration[iteration];
                         line.Append(",");
                         line.Append(objectiveFunction.ToString(CultureInfo.InvariantCulture));
                     }

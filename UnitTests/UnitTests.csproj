@@ -84,10 +84,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assignment1.cs" />
+    <Compile Include="Assignment2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FE640_set1_20.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="FE640_set2_20.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />

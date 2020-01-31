@@ -1,14 +1,15 @@
-﻿using System;
+﻿using FE640.Heuristics;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Management.Automation;
 using System.Text;
 
-namespace FE640
+namespace FE640.Cmdlets
 {
-    [Cmdlet(VerbsCommunications.Write, "HarvestSchedule")]
-    public class WriteHarvestSchedule : Cmdlet
+    [Cmdlet(VerbsCommunications.Write, "Harvest")]
+    public class WriteHarvest : Cmdlet
     {
         [Parameter(Mandatory = true)]
         public string CsvFile;
@@ -21,27 +22,27 @@ namespace FE640
             using StreamWriter writer = new StreamWriter(stream);
 
             StringBuilder line = new StringBuilder("unit");
-            int maxUnit = 0;
+            int maxPeriod = 0;
             for (int heuristicIndex = 0; heuristicIndex < this.Heuristics.Count; ++heuristicIndex)
             {
                 line.AppendFormat(CultureInfo.InvariantCulture, ",SA{0}", heuristicIndex);
 
                 Heuristic heuristic = this.Heuristics[heuristicIndex];
-                maxUnit = Math.Max(maxUnit, heuristic.BestHarvestPeriods.Length);
+                maxPeriod = Math.Max(maxPeriod, heuristic.BestHarvestByPeriod.Length);
             }
             writer.WriteLine(line);
 
-            for (int unitIndex = 0; unitIndex < maxUnit; ++unitIndex)
+            for (int period = 0; period < maxPeriod; ++period)
             {
                 line.Clear();
-                line.Append(unitIndex);
+                line.Append(period);
 
                 for (int heuristicIndex = 0; heuristicIndex < this.Heuristics.Count; ++heuristicIndex)
                 {
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
-                    if (heuristic.ObjectiveFunctionByIteration.Count > unitIndex)
+                    if (heuristic.ObjectiveFunctionByIteration.Count > period)
                     {
-                        float objectiveFunction = heuristic.BestHarvestPeriods[unitIndex];
+                        double objectiveFunction = heuristic.BestHarvestByPeriod[period];
                         line.Append(",");
                         line.Append(objectiveFunction.ToString(CultureInfo.InvariantCulture));
                     }

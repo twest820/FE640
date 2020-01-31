@@ -16,7 +16,7 @@ $annealerAndObjectives[0].BestHarvestByPeriod
 Write-Harvest -Heuristics $annealerAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_harvest.csv"));
 Write-HarvestSchedule -Heuristics $annealerAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_schedule.csv"));
 Write-Objective -Heuristics $annealerAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_objective.csv"));
-$annealerAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_objectiveDistribution.csv"));
+$annealerAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_objectiveDistribution.csv")) -Encoding utf8;
 
 $acceptor = Optimize-ThresholdAccepting -Units $units -TargetHarvestPerPeriod 439800 -TargetHarvestWeights $harvestWeights -Thresholds (1.05, 1.03, 1.00) -Verbose;
 $acceptor.BestHarvestByPeriod
@@ -27,4 +27,4 @@ $acceptorAndObjectives[0].BestHarvestByPeriod
 Write-Harvest -Heuristics $acceptorAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_ta_harvest.csv"));
 Write-HarvestSchedule -Heuristics $acceptorAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_ta_schedule.csv"));
 Write-Objective -Heuristics $acceptorAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_ta_objective.csv"));
-$acceptorAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_ta_objectiveDistribution.csv"));
+$acceptorAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_ta_objectiveDistribution.csv")) -Encoding utf8;
