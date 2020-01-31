@@ -11,6 +11,8 @@ namespace FE640.Cmdlets
         [Parameter]
         public int BestOf { get; set; }
         [Parameter]
+        public SwitchParameter Randomize { get; set; }
+        [Parameter]
         public Nullable<float> TargetHarvestPerPeriod { get; set; }
         [Parameter]
         public double[] TargetHarvestWeights { get; set; }
@@ -46,6 +48,11 @@ namespace FE640.Cmdlets
             List<double> objectiveFunctionValues = new List<double>();
             for (int iteration = 0; iteration < this.BestOf; ++iteration)
             {
+                if (this.Randomize)
+                {
+                    this.Units.SetRandomSchedule();
+                }
+
                 Heuristic currentHeuristic = this.CreateHeuristic();
                 this.ConfigureHeuristic(currentHeuristic);
                 totalRunTime += currentHeuristic.Run();
@@ -105,7 +112,9 @@ namespace FE640.Cmdlets
             this.WriteVerbose("objective: best {0:0.00#}M, ending {1:0.00#}M.", 1E-6 * heuristic.BestObjectiveFunction, 1E-6 * heuristic.ObjectiveFunctionByIteration.Last());
             this.WriteVerbose("flow: {0:0.0}k mean, {1:0.000}% even, {2:0.0}-{3:0.0}k = range {4:0}.", 1E-3 * meanHarvest, 1E2 * flowEvenness, 1E-3 * minimumHarvest, 1E-3 * maximumHarvest, maximumHarvest - minimumHarvest);
             double iterationsPerSecond = (double)iterations / (double)runTime.TotalSeconds;
-            this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} Miterations/s).", iterations, runTime, 1E-6 * iterationsPerSecond);
+            double iterationsPerSecondMultiplier = iterationsPerSecond > 1E6 ? 1E-6 : 1E-3;
+            string iterationsPerSecondScale = iterationsPerSecond > 1E6 ? "M" : "k";
+            this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} {3}iterations/s).", iterations, runTime, iterationsPerSecondMultiplier * iterationsPerSecond, iterationsPerSecondScale);
         }
 
         protected void WriteVerbose(string format, params object[] args)

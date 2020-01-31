@@ -45,5 +45,24 @@ namespace FE640.Test
             Assert.IsTrue(objectiveFunctionRatio > 0.99999);
             Assert.IsTrue(objectiveFunctionRatio < 1.00001);
         }
+
+        [TestMethod]
+        public void TabuSearch()
+        {
+            HarvestUnits units = new HarvestUnits("FE640_set2_20.xlsx");
+            units.SetRandomSchedule();
+            TabuSearch tabu = new TabuSearch(units, 100)
+            {
+                TargetHarvestPerPeriod = 25000
+            };
+            tabu.Run();
+
+            tabu.RecalculateHarvestVolumes();
+            double endObjectiveFunction = tabu.ObjectiveFunctionByIteration.Last();
+            double recalculatedObjectiveFunction = tabu.RecalculateObjectiveFunction();
+            double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.99999);
+            Assert.IsTrue(objectiveFunctionRatio < 1.00001);
+        }
     }
 }

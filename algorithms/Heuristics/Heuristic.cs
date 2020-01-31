@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace FE640.Heuristics
@@ -19,9 +20,15 @@ namespace FE640.Heuristics
         public int[] BestHarvestPeriods { get; protected set; }
         public double[] CurrentHarvestByPeriod { get; protected set; }
         public int[] CurrentHarvestPeriods { get; protected set; }
+        public int MaximumUnitIndex { get; set; }
         public List<double> ObjectiveFunctionByIteration { get; protected set; }
 
         protected Heuristic(HarvestUnits units)
+            : this(units, units.Count)
+        {
+        }
+
+        protected Heuristic(HarvestUnits units, int maximumUnitIndex)
         {
             this.pseudorandom = new Random();
             this.pseudorandomBytes = new byte[1024];
@@ -32,6 +39,7 @@ namespace FE640.Heuristics
             Array.Copy(units.HarvestPeriods, 0, this.BestHarvestPeriods, 0, units.Count);
             this.CurrentHarvestPeriods = new int[units.Count];
             Array.Copy(units.HarvestPeriods, 0, this.CurrentHarvestPeriods, 0, units.Count);
+            this.MaximumUnitIndex = maximumUnitIndex;
             this.Units = units;
 
             // units default to harvest period 0, which is treated as no cut
@@ -73,6 +81,55 @@ namespace FE640.Heuristics
                 this.BestObjectiveFunction = this.RecalculateObjectiveFunction();
                 this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
             }
+        }
+
+        protected int AcceptMove(int unitIndex, int candidateHarvestPeriod)
+        {
+            int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
+            double candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
+            double currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
+
+            this.CurrentHarvestPeriods[unitIndex] = candidateHarvestPeriod;
+            this.CurrentHarvestByPeriod[candidateHarvestPeriod] += candidateYield;
+            this.CurrentHarvestByPeriod[currentHarvestPeriod] -= currentYield;
+            Debug.Assert(this.CurrentHarvestByPeriod[candidateHarvestPeriod] >= 0.0F);
+            Debug.Assert(this.CurrentHarvestByPeriod[currentHarvestPeriod] >= 0.0F);
+
+            return currentHarvestPeriod;
+        }
+
+        protected double GetCandidateObjectiveFunction(int unitIndex, int candidateHarvestPeriod, double currentObjectiveFunction)
+        {
+            int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
+
+            double candidateHarvest = this.CurrentHarvestByPeriod[candidateHarvestPeriod];
+            double candidateYield = this.Units.YieldByPeriod[unitIndex, candidateHarvestPeriod];
+            double currentHarvest = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+            double currentYield = this.Units.YieldByPeriod[unitIndex, currentHarvestPeriod];
+
+            // default to move from uncut to cut case
+            double candidateWeight = this.TargetHarvestWeights[candidateHarvestPeriod];
+            double candidateDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
+                                                           (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
+            double currentDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest) *
+                                                         (this.TargetHarvestPerPeriod - candidateHarvest);
+            // if this is a move between periods then include objective function terms for the unit's current harvest period
+            if (currentHarvestPeriod > 0)
+            {
+                double currentWeight = this.TargetHarvestWeights[currentHarvestPeriod];
+                candidateDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest + currentYield) *
+                                                       (this.TargetHarvestPerPeriod - currentHarvest + currentYield);
+                currentDeviations += currentWeight * (this.TargetHarvestPerPeriod - currentHarvest) *
+                                                     (this.TargetHarvestPerPeriod - currentHarvest);
+            }
+            double candidateObjectiveFunctionChange = candidateDeviations - currentDeviations;
+
+            double candidateObjectiveFunction = currentObjectiveFunction + candidateObjectiveFunctionChange;
+            if (candidateObjectiveFunction < 0.0F)
+            {
+                candidateObjectiveFunction = -candidateObjectiveFunction;
+            }
+            return candidateObjectiveFunction;
         }
 
         protected double GetDefaultTargetHarvestPerPeriod()
@@ -129,7 +186,7 @@ namespace FE640.Heuristics
         {
             // recalculate harvest volumes
             Array.Clear(this.CurrentHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
-            for (int unitIndex = 0; unitIndex < this.Units.Count; ++unitIndex)
+            for (int unitIndex = 0; unitIndex < this.MaximumUnitIndex; ++unitIndex)
             {
                 int periodIndex = this.CurrentHarvestPeriods[unitIndex];
                 if (periodIndex > -1)
@@ -156,5 +213,22 @@ namespace FE640.Heuristics
         }
 
         public abstract TimeSpan Run();
+
+        protected void UpdateBestSolution(int unitIndex, int previousHarvestPeriod, int currentHarvestPeriod, int movesSinceBestObjectiveImproved)
+        {
+            if (movesSinceBestObjectiveImproved == 1)
+            {
+                // incremental update of best solution
+                this.BestHarvestPeriods[unitIndex] = currentHarvestPeriod;
+                this.BestHarvestByPeriod[previousHarvestPeriod] = this.CurrentHarvestByPeriod[previousHarvestPeriod];
+                this.BestHarvestByPeriod[currentHarvestPeriod] = this.CurrentHarvestByPeriod[currentHarvestPeriod];
+            }
+            else
+            {
+                // copy current solution since history of moves between it and last best solution is unknown
+                Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
+                Array.Copy(this.CurrentHarvestPeriods, 0, this.BestHarvestPeriods, 0, this.CurrentHarvestPeriods.Length);
+            }
+        }
     }
 }

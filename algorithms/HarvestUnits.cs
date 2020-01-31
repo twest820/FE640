@@ -72,10 +72,9 @@ namespace FE640
         public void SetRandomSchedule()
         {
             Random random = new Random();
-            int lastPeriod = this.YieldByPeriod.GetLength(1) - 1;
             for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
             {
-                this.HarvestPeriods[unitIndex] = random.Next(1, lastPeriod);
+                this.HarvestPeriods[unitIndex] = random.Next(1, this.YieldByPeriod.GetLength(1));
             }
         }
     }
