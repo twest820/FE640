@@ -13,7 +13,7 @@ namespace FE640.Heuristics
             : base(units)
         {
             this.IterationsPerThreshold = 5 * units.Count;
-            this.Thresholds = new List<double>() { 1.1F, 1.08F, 1.05F, 1.03F, 1.01F, 1.0F };
+            this.Thresholds = new List<double>() { 1.1, 1.08, 1.05, 1.03, 1.01, 1.0 };
 
             this.ObjectiveFunctionByIteration = new List<double>(this.Thresholds.Count * this.IterationsPerThreshold)
             {
@@ -29,20 +29,20 @@ namespace FE640.Heuristics
             stopwatch.Start();
 
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
 
             foreach (double threshold in this.Thresholds)
             {
                 for (int iteration = 0; iteration < this.IterationsPerThreshold; ++iteration)
                 {
-                    int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
+                    int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsDouble());
                     int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
-                    int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                    int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     while (candidateHarvestPeriod == currentHarvestPeriod)
                     {
-                        candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                        candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     }
                     Debug.Assert(candidateHarvestPeriod > 0);
 

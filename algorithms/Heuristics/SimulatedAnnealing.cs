@@ -37,21 +37,21 @@ namespace FE640.Heuristics
 
             double acceptanceProbabilityScalingFactor = 1.0F / (double)byte.MaxValue;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
             double temperature = this.InitialTemperature;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
 
             for (double currentTemperature = this.InitialTemperature; currentTemperature > this.FinalTemperature; currentTemperature *= this.Alpha)
             {
                 for (int iterationAtTemperature = 0; iterationAtTemperature < this.IterationsPerTemperature; ++iterationAtTemperature)
                 {
-                    int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
+                    int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsDouble());
                     int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
-                    int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                    int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     while (candidateHarvestPeriod == currentHarvestPeriod)
                     {
-                        candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                        candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     }
                     Debug.Assert(candidateHarvestPeriod > 0);
 
@@ -87,7 +87,7 @@ namespace FE640.Heuristics
                             // exponent is small enough not to round acceptance probabilities down to zero
                             // 1/e^9 is an acceptance probability of 0.012%, or 1 in 8095 moves.
                             double acceptanceProbability = 1.0F / (double)Math.Exp(exponent);
-                            double moveProbability = acceptanceProbabilityScalingFactor * this.GetPseudorandomByteAsFloat();
+                            double moveProbability = acceptanceProbabilityScalingFactor * this.GetPseudorandomByteAsDouble();
                             if (moveProbability < acceptanceProbability)
                             {
                                 acceptMove = true;

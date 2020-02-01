@@ -26,10 +26,10 @@ namespace FE640.Heuristics
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            //double[,] candidateObjectiveFunctions = new double[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
             int[,] remainingTabuTenures = new int[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
             double currentObjectiveFunction = this.BestObjectiveFunction;
             int movesSinceBestObjectiveImproved = 0;
+            //double tenureScalingFactor = ((double)this.Tenure - 0.01) / (double)byte.MaxValue;
             for (int neighborhoodEvaluation = 0; neighborhoodEvaluation < this.Iterations; ++neighborhoodEvaluation)
             {
                 // evaluate potential moves in neighborhood
@@ -65,8 +65,6 @@ namespace FE640.Heuristics
                             bestNonTabuHarvestPeriod = periodIndex;
                         }
 
-                        // not needed, but potentially useful for debugging
-                        //candidateObjectiveFunctions[unitIndex, periodIndex] = candidateObjectiveFunction;
                         if (tabuTenure > 0)
                         {
                             remainingTabuTenures[unitIndex, periodIndex] = tabuTenure - 1;
@@ -85,6 +83,7 @@ namespace FE640.Heuristics
 
                     int previousHarvestPeriod = this.AcceptMove(bestUnitIndex, bestHarvestPeriod);
                     remainingTabuTenures[bestUnitIndex, bestHarvestPeriod] = this.Tenure;
+                    // remainingTabuTenures[bestUnitIndex, bestHarvestPeriod] = (int)(tenureScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     ++movesSinceBestObjectiveImproved;
 
                     this.UpdateBestSolution(bestUnitIndex, previousHarvestPeriod, bestHarvestPeriod, movesSinceBestObjectiveImproved);
@@ -98,6 +97,7 @@ namespace FE640.Heuristics
 
                     this.AcceptMove(bestNonTabuUnitIndex, bestNonTabuHarvestPeriod);
                     remainingTabuTenures[bestNonTabuUnitIndex, bestNonTabuHarvestPeriod] = this.Tenure;
+                    // remainingTabuTenures[bestNonTabuUnitIndex, bestNonTabuHarvestPeriod] = (int)(tenureScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                     ++movesSinceBestObjectiveImproved;
                 }
 

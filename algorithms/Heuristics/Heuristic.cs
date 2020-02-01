@@ -144,7 +144,7 @@ namespace FE640.Heuristics
             return 0.6 * maximumYield / (double)periods;
         }
 
-        protected double GetPseudorandomByteAsFloat()
+        protected double GetPseudorandomByteAsDouble()
         {
             double byteAsFloat = this.pseudorandomBytes[this.pseudorandomByteIndex];
             ++this.pseudorandomByteIndex;
@@ -159,7 +159,7 @@ namespace FE640.Heuristics
             return byteAsFloat;
         }
 
-        protected double GetTwoPseudorandomBytesAsFloat()
+        protected double GetTwoPseudorandomBytesAsDouble()
         {
             // ensure two bytes are available
             if (this.pseudorandomByteIndex > this.pseudorandomBytes.Length - 2)

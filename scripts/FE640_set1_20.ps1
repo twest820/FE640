@@ -13,6 +13,7 @@ $annealer = Optimize-SimulatedAnnealing -Units $units -TargetHarvestPerPeriod $t
 $annealer.BestHarvestByPeriod
 $annealer.CurrentHarvestByPeriod
 $annealerAndObjectives = Optimize-SimulatedAnnealing -BestOf 100 -Units $units -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose;
+$annealerAndObjectives = Optimize-SimulatedAnnealing -BestOf 1000 -InitialTemperature 8000 -FinalTemperature 50 -UniformHarvestProbability -Units $units -TargetHarvestPerPeriod 439620 -TargetHarvestWeights $harvestWeights -Verbose;
 $annealerAndObjectives[0].BestHarvestByPeriod
 Write-Harvest -Heuristics $annealerAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_harvest.csv"));
 Write-HarvestSchedule -Heuristics $annealerAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set1_20_sa_schedule.csv"));

@@ -29,19 +29,19 @@ namespace FE640.Heuristics
 
             double maximumAcceptableObjectiveFunction = this.BestObjectiveFunction + this.Deviation;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01F) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
             int iterationsSinceBestObjectiveImproved = 0;
             int movesSinceBestObjectiveImproved = 0;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01F) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
 
             while (iterationsSinceBestObjectiveImproved < this.StopAfter)
             {
-                int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsFloat());
+                int unitIndex = (int)(unitIndexScalingFactor * this.GetTwoPseudorandomBytesAsDouble());
                 int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
-                int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                int candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                 while (candidateHarvestPeriod == currentHarvestPeriod)
                 {
-                    candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsFloat()) + 1;
+                    candidateHarvestPeriod = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
                 }
                 Debug.Assert(candidateHarvestPeriod > 0);
 
@@ -53,9 +53,9 @@ namespace FE640.Heuristics
                 // default to move from uncut to cut case
                 double candidateWeight = this.TargetHarvestWeights[candidateHarvestPeriod];
                 double candidateDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield) *
-                                                                (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
+                                                               (this.TargetHarvestPerPeriod - candidateHarvest - candidateYield);
                 double currentDeviations = candidateWeight * (this.TargetHarvestPerPeriod - candidateHarvest) *
-                                                                (this.TargetHarvestPerPeriod - candidateHarvest);
+                                                             (this.TargetHarvestPerPeriod - candidateHarvest);
                 // if this is a move between periods then include objective function terms for the unit's current harvest period
                 if (currentHarvestPeriod > 0)
                 {
