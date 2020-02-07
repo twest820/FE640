@@ -9,10 +9,10 @@ namespace FE640.Heuristics
         public int Iterations { get; set; }
         public int Tenure { get; set; }
 
-        public TabuSearch(HarvestUnits units, int maximumUnitIndex)
-            :  base(units, maximumUnitIndex)
+        public TabuSearch(HarvestUnits units)
+            :  base(units)
         {
-            this.Iterations = 2 * maximumUnitIndex;
+            this.Iterations = 2 * units.Count;
             this.Tenure = 7;
 
             this.ObjectiveFunctionByIteration = new List<double>(1000)
@@ -23,10 +23,23 @@ namespace FE640.Heuristics
 
         public override TimeSpan Run()
         {
+            if (this.Iterations < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.Iterations));
+            }
+            if (this.Tenure < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.Tenure));
+            }
+            if (this.Units.HasAdjacency)
+            {
+                throw new NotSupportedException();
+            }
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            int[,] remainingTabuTenures = new int[this.MaximumUnitIndex, this.CurrentHarvestByPeriod.Length];
+            int[,] remainingTabuTenures = new int[this.Units.Count, this.CurrentHarvestByPeriod.Length];
             double currentObjectiveFunction = this.BestObjectiveFunction;
             int movesSinceBestObjectiveImproved = 0;
             //double tenureScalingFactor = ((double)this.Tenure - 0.01) / (double)byte.MaxValue;
@@ -39,7 +52,7 @@ namespace FE640.Heuristics
                 double bestNonTabuCandidateObjectiveFunction = Double.MaxValue;
                 int bestNonTabuUnitIndex = -1;
                 int bestNonTabuHarvestPeriod = -1;
-                for (int unitIndex = 0; unitIndex < this.MaximumUnitIndex; ++unitIndex)
+                for (int unitIndex = 0; unitIndex < this.Units.Count; ++unitIndex)
                 {
                     int currentHarvestPeriod = this.CurrentHarvestPeriods[unitIndex];
                     for (int periodIndex = 1; periodIndex < this.CurrentHarvestByPeriod.Length; ++periodIndex)
@@ -49,7 +62,7 @@ namespace FE640.Heuristics
                         {
                             candidateObjectiveFunction = this.GetCandidateObjectiveFunction(unitIndex, periodIndex, currentObjectiveFunction);
                         }
-                        
+
                         if (candidateObjectiveFunction < bestCandidateObjectiveFunction)
                         {
                             bestCandidateObjectiveFunction = candidateObjectiveFunction;
@@ -74,7 +87,7 @@ namespace FE640.Heuristics
                 Debug.Assert(bestCandidateObjectiveFunction >= 0.0F);
 
                 // make best move and update tabu table
-                // other possibilities: 1) make unit tabu, 2) stochastic tenure
+                // other possibilities: 1) make unit tabu, 2) uncomment stochastic tenure
                 if (bestCandidateObjectiveFunction < this.BestObjectiveFunction)
                 {
                     // always accept best candidate if it improves upon the best solution

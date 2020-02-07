@@ -9,19 +9,14 @@ namespace FE640.Cmdlets
     {
         [Parameter]
         public Nullable<int> Iterations { get; set; }
-        [Parameter]
-        public int MaximumUnitIndex { get; set; }
-        [Parameter]
-        public Nullable<int> Tenure { get; set; }
 
-        public OptimizeTabu()
-        {
-            this.MaximumUnitIndex = 100;
-        }
+        [Parameter]
+        [ValidateRange(0, Int32.MaxValue)]
+        public Nullable<int> Tenure { get; set; }
 
         protected override Heuristic CreateHeuristic()
         {
-            TabuSearch tabu = new TabuSearch(this.Units, this.MaximumUnitIndex);
+            TabuSearch tabu = new TabuSearch(this.Units);
             if (this.Iterations.HasValue)
             {
                 tabu.Iterations = this.Iterations.Value;

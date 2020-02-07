@@ -25,9 +25,21 @@ namespace FE640.Heuristics
 
         public override TimeSpan Run()
         {
+            if (this.InitialWaterLevelMultiplier <= 0.0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.InitialWaterLevelMultiplier));
+            }
             if ((this.RainRate <= 0.0) || (this.RainRate >= 1.0))
             {
                 throw new ArgumentOutOfRangeException(nameof(this.RainRate));
+            }
+            if (this.StopAfter <= 0.0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.StopAfter));
+            }
+            if (this.Units.HasAdjacency)
+            {
+                throw new NotSupportedException();
             }
 
             Stopwatch stopwatch = new Stopwatch();
@@ -89,7 +101,9 @@ namespace FE640.Heuristics
                     Debug.Assert(this.CurrentHarvestByPeriod[currentHarvestPeriod] >= 0.0F);
                     Debug.Assert(currentObjectiveFunction >= 0.0F);
 
-                    if (currentObjectiveFunction < this.BestObjectiveFunction)
+                    // see remarks in RecordToRecordTravel.RunWithAdjacency()
+                    double objectiveFunctionRatio = currentObjectiveFunction / this.BestObjectiveFunction;
+                    if (objectiveFunctionRatio < Constant.MinimumObjectiveRatioRequiredForImprovement)
                     {
                         if (movesSinceBestObjectiveImproved == 1)
                         {

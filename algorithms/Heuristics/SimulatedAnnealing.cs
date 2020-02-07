@@ -32,6 +32,27 @@ namespace FE640.Heuristics
 
         public override TimeSpan Run()
         {
+            if ((this.Alpha <= 0.0) || (this.Alpha >= 1.0))
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.Alpha));
+            }
+            if (this.FinalTemperature <= 0.0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.FinalTemperature));
+            }
+            if (this.InitialTemperature <= this.FinalTemperature)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.InitialTemperature));
+            }
+            if (this.IterationsPerTemperature <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.IterationsPerTemperature));
+            }
+            if (this.Units.HasAdjacency)
+            {
+                throw new NotSupportedException();
+            }
+
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 

@@ -50,9 +50,9 @@ namespace FE640.Test
         [TestMethod]
         public void TabuSearch()
         {
-            HarvestUnits units = new HarvestUnits("FE640_set2_20.xlsx");
+            HarvestUnits units = new HarvestUnits("FE640_set2_20.xlsx", 100);
             units.SetRandomSchedule(new List<double>() { 0.30, 0.25, 0.20, 0.15, 0.10 });
-            TabuSearch tabu = new TabuSearch(units, 100)
+            TabuSearch tabu = new TabuSearch(units)
             {
                 TargetHarvestPerPeriod = 25000
             };

@@ -12,8 +12,11 @@ namespace FE640.Cmdlets
     public class WriteHarvestSchedule : Cmdlet
     {
         [Parameter(Mandatory = true)]
+        [ValidateNotNullOrEmpty]
         public string CsvFile;
+
         [Parameter(Mandatory = true)]
+        [ValidateNotNull]
         public List<Heuristic> Heuristics { get; set; }
 
         protected override void ProcessRecord()

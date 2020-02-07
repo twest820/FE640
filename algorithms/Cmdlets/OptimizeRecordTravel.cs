@@ -8,8 +8,11 @@ namespace FE640.Cmdlets
     public class OptimizeRecordTravel : OptimizeCmdlet
     {
         [Parameter]
+        [ValidateRange(0.0, double.MaxValue)]
         public Nullable<double> Deviation { get; set; }
+        
         [Parameter]
+        [ValidateRange(1, Int32.MaxValue)]
         public Nullable<int> StopAfter { get; set; }
 
         public OptimizeRecordTravel()

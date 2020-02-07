@@ -9,7 +9,9 @@ namespace FE640.Cmdlets
     public class OptimizeThresholdAccepting : OptimizeCmdlet
     {
         [Parameter]
+        [ValidateRange(1, Int32.MaxValue)]
         public Nullable<int> IterationsPerThreshold { get; set; }
+
         [Parameter]
         public List<double> Thresholds { get; set; }
 

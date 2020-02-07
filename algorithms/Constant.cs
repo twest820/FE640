@@ -2,6 +2,8 @@
 {
     internal static class Constant
     {
+        public const double MinimumObjectiveRatioRequiredForImprovement = 1.0 - 1E-9;
+
         public static class OpenXml
         {
             public const string CellValue = "v";

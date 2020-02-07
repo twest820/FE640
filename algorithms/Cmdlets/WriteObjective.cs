@@ -12,10 +12,15 @@ namespace FE640.Cmdlets
     public class WriteObjective : Cmdlet
     {
         [Parameter(Mandatory = true)]
+        [ValidateNotNullOrEmpty]
         public string CsvFile;
+
         [Parameter(Mandatory = true)]
+        [ValidateNotNull]
         public List<Heuristic> Heuristics { get; set; }
+
         [Parameter(HelpMessage = "Number of iterations between CSV file lines. Default is 100, which prints every 100th objective function value.")]
+        [ValidateRange(1, Int32.MaxValue)]
         public int Step;
 
         public WriteObjective()

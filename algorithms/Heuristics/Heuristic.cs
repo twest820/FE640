@@ -20,26 +20,22 @@ namespace FE640.Heuristics
         public int[] BestHarvestPeriods { get; protected set; }
         public double[] CurrentHarvestByPeriod { get; protected set; }
         public int[] CurrentHarvestPeriods { get; protected set; }
-        public int MaximumUnitIndex { get; set; }
+        public float MaximumOpeningSize { get; protected set; }
         public List<double> ObjectiveFunctionByIteration { get; protected set; }
 
         protected Heuristic(HarvestUnits units)
-            : this(units, units.Count)
-        {
-        }
-
-        protected Heuristic(HarvestUnits units, int maximumUnitIndex)
         {
             this.pseudorandom = new Random();
             this.pseudorandomBytes = new byte[1024];
             pseudorandom.NextBytes(pseudorandomBytes);
             this.pseudorandomByteIndex = 0;
 
+            this.MaximumOpeningSize = 0.0F;
+
             this.BestHarvestPeriods = new int[units.Count];
             Array.Copy(units.HarvestPeriods, 0, this.BestHarvestPeriods, 0, units.Count);
             this.CurrentHarvestPeriods = new int[units.Count];
             Array.Copy(units.HarvestPeriods, 0, this.CurrentHarvestPeriods, 0, units.Count);
-            this.MaximumUnitIndex = maximumUnitIndex;
             this.Units = units;
 
             // units default to harvest period 0, which is treated as no cut
@@ -186,7 +182,7 @@ namespace FE640.Heuristics
         {
             // recalculate harvest volumes
             Array.Clear(this.CurrentHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
-            for (int unitIndex = 0; unitIndex < this.MaximumUnitIndex; ++unitIndex)
+            for (int unitIndex = 0; unitIndex < this.Units.Count; ++unitIndex)
             {
                 int periodIndex = this.CurrentHarvestPeriods[unitIndex];
                 if (periodIndex > -1)

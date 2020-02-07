@@ -8,12 +8,19 @@ namespace FE640.Cmdlets
     public class OptimizeSimulatedAnnealing : OptimizeCmdlet
     {
         [Parameter]
+        [ValidateRange(0.0, 1.0)]
         public Nullable<double> Alpha { get; set; }
+
         [Parameter]
+        [ValidateRange(0.0, double.MaxValue)]
         public Nullable<double> FinalTemperature { get; set; }
+        
         [Parameter]
+        [ValidateRange(0.0, double.MaxValue)]
         public Nullable<double> InitialTemperature { get; set; }
+        
         [Parameter]
+        [ValidateRange(1, Int32.MaxValue)]
         public Nullable<int> IterationsPerTemperature { get; set; }
 
         public OptimizeSimulatedAnnealing()

@@ -9,15 +9,18 @@ namespace FE640.Cmdlets
     public abstract class OptimizeCmdlet : Cmdlet
     {
         [Parameter]
+        [ValidateRange(1, Int32.MaxValue)]
         public int BestOf { get; set; }
         [Parameter]
+        [ValidateRange(0.0, 1.0)]
         public List<double> HarvestProbabilityByPeriod { get; set; }
         [Parameter]
         public SwitchParameter LoopHarvestPeriods { get; set; }
         [Parameter]
         public SwitchParameter UniformHarvestProbability { get; set; }
         [Parameter]
-        public Nullable<float> TargetHarvestPerPeriod { get; set; }
+        [ValidateRange(0.0, Double.MaxValue)]
+        public Nullable<double> TargetHarvestPerPeriod { get; set; }
         [Parameter]
         public double[] TargetHarvestWeights { get; set; }
         [Parameter(Mandatory = true)]
@@ -131,6 +134,11 @@ namespace FE640.Cmdlets
             this.WriteVerbose("{0} moves, {1} accepted ({2:0%}), {3} rejected ({4:0%})", totalMoves, movesAccepted, (double)movesAccepted / (double)totalMoves, movesRejected, (double)movesRejected / (double)totalMoves);
             this.WriteVerbose("objective: best {0:0.00#}M, ending {1:0.00#}M.", 1E-6 * heuristic.BestObjectiveFunction, 1E-6 * heuristic.ObjectiveFunctionByIteration.Last());
             this.WriteVerbose("flow: {0:0.0}k mean, {1:0.000}% even, {2:0.0}-{3:0.0}k = range {4:0}.", 1E-3 * meanHarvest, 1E2 * flowEvenness, 1E-3 * minimumHarvest, 1E-3 * maximumHarvest, maximumHarvest - minimumHarvest);
+            if (this.Units.HasAdjacency)
+            {
+                this.WriteVerbose("{0:0.0} maximum opening", heuristic.MaximumOpeningSize);
+            }
+
             double iterationsPerSecond = (double)iterations / (double)runTime.TotalSeconds;
             double iterationsPerSecondMultiplier = iterationsPerSecond > 1E6 ? 1E-6 : 1E-3;
             string iterationsPerSecondScale = iterationsPerSecond > 1E6 ? "M" : "k";

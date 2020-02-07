@@ -8,10 +8,13 @@ namespace FE640.Cmdlets
     public class OptimizeGreatDeluge : OptimizeCmdlet
     {
         [Parameter]
+        [ValidateRange(0.0, double.MaxValue)]
         public Nullable<double> InitialWaterLevelMultiplier { get; set; }
         [Parameter]
+        [ValidateRange(0.0, 1.0)]
         public Nullable<double> RainRate { get; set; }
         [Parameter]
+        [ValidateRange(1, Int32.MaxValue)]
         public Nullable<int> StopAfter { get; set; }
 
         public OptimizeGreatDeluge()
