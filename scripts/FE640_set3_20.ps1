@@ -57,7 +57,7 @@ $openings.MaximumOpeningSizeByPeriod
 
 Write-Harvest -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_2kHarvest.csv"));
 Write-HarvestSchedule -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_2kSchedule.csv"));
-Write-Objective -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_2kObjective.csv"));
+Write-Objective -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_2k10Objective.csv"));
 $recordTravel.ObjectiveFunctionByIteration | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_2kObjectiveDistribution.csv")) -Encoding utf8;
 
 
