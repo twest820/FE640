@@ -12,7 +12,7 @@ namespace FE640.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void RecordToRecordTravel()
+        public void FeasibleMovesOnly()
         {
             HarvestUnits units = new HarvestUnits("FE640_set3_20.xlsx", 100);
             units.SetRectangularAdjacency(10);
@@ -66,6 +66,38 @@ namespace FE640.Test
                 Assert.IsTrue(openingSizes.MaximumOpeningSizeByPeriod[planningPeriod] >= units.UnitSize);
                 Assert.IsTrue(openingSizes.MaximumOpeningSizeByPeriod[planningPeriod] <= units.MaximumOpeningSize);
             }
+        }
+
+        [TestMethod]
+        public void WithInfeasibleOpeningSizes()
+        {
+            HarvestUnits units = new HarvestUnits("FE640_set3_20.xlsx", 100);
+            units.SetRectangularAdjacency(10);
+
+            // do record to record travel
+            RecordToRecordTravel recordTravel = new RecordToRecordTravel(units)
+            {
+                Deviation = 500.0 * 1000.0,
+                InfeasibilityPenalty = 250.0 * 1000.0,
+                MaximumInfeasibleUnits = 1,
+                StopAfter = 100 * 1000,
+                TargetHarvestPerPeriod = 8700.0,
+                TargetHarvestWeights = new double[] { 0.0, 1.34, 1.30, 1.27, 1.23, 1.19, 1.16, 1.13, 1.09, 1.06, 1.03, 1.0 }
+            };
+            recordTravel.Run();
+
+            // check self reporting from heuristic
+            recordTravel.RecalculateHarvestVolumes();
+            double endObjectiveFunction = recordTravel.ObjectiveFunctionByIteration.Last();
+            double recalculatedObjectiveFunction = recordTravel.RecalculateObjectiveFunction();
+            double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            this.TestContext.WriteLine("objective: best {0:0}, end {1:0}, end ratio {2:0.00000}", recordTravel.BestObjectiveFunction, recordTravel.ObjectiveFunctionByIteration.Last(), objectiveFunctionRatio);
+
+            // apply best schedule found to harvest units check opening sizes
+            units.SetBestSchedule(recordTravel);
+            OpeningSizes openingSizes = units.GetMaximumOpeningSizesByPeriod();
+            float maximumOpeningSize = openingSizes.MaximumOpeningSizeByPeriod.Max();
+            this.TestContext.WriteLine("max opening: best {0:0}ac", maximumOpeningSize);
         }
     }
 }

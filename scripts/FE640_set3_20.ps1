@@ -10,8 +10,8 @@ $units.SetRectangularAdjacency(10);
 
 # non-spatial solutions @ 100 units: 8400-8600 units/year, 1.0-1.2% even flow, range 150-200ish
 #   4.4 Mips debug, 4.3 Mips release
-#$targetHarvestPerPeriod = 8700
-#$recordTravel = Optimize-RecordTravel -Units $units -Deviation 2.5E5 -StopAfter 5E5 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose;
+$targetHarvestPerPeriod = 8700
+$recordTravel = Optimize-RecordTravel -Units $units -Deviation 2.5E5 -StopAfter 5E5 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose;
 
 # spatial solutions @ 100 units: best deviation deviation 2.5E5, stop after 5E5
 #   full recursion: 10 runs, 8600 units/year (8700 target), 1.2-1.5% even flow, range 150-200, 125 kips debug, 550 kips release
@@ -35,13 +35,41 @@ $units.SetBestSchedule($recordTravelAndObjectives[0])
 $openings = $units.GetMaximumOpeningSizesByPeriod()
 $openings.MaximumOpeningSizeByPeriod
 
-$recordTravelAndObjectives = Optimize-RecordTravel -BestOf 1000 -Deviation 0.9E6 -StopAfter 7.5E5 -UniformHarvestProbability -Units $units -TargetHarvestPerPeriod 439620 -TargetHarvestWeights $harvestWeights -Verbose;
-
 Write-Harvest -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_harvest100.csv"));
 Write-HarvestSchedule -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_schedule100.csv"));
 Write-Objective -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objective100.csv"));
 $recordTravelAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objectiveDistribution100.csv")) -Encoding utf8;
 
+
+# 100 unit spatial solutions with infeasible moves allowed
+$targetHarvestPerPeriod = 8700
+$units = Get-Units -Units 100 -UnitXlsx ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20.xlsx"));
+$units.SetRectangularAdjacency(10)
+$recordTravel = Optimize-RecordTravel -Units $units -MaximumInfeasibleUnits 1 -InfeasibilityPenalty 2.5E5 -Deviation 2.5E5 -StopAfter 1E6 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose;
+$units.SetBestSchedule($recordTravel);
+$openings = $units.GetMaximumOpeningSizesByPeriod();
+[System.Linq.Enumerable]::Max($openings.MaximumOpeningSizeByPeriod)
+
+$recordTravel.BestHarvestByPeriod
+Write-Harvest -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_harvest100_infeasible1.csv"));
+Write-HarvestSchedule -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_schedule100_infeasible1.csv"));
+Write-Objective -Heuristics $recordTravel -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objective100_infeasible1.csv"));
+$recordTravel[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objectiveDistribution100_infeasible1.csv")) -Encoding utf8;
+
+
+$targetHarvestPerPeriod = 8700
+$units = Get-Units -Units 100 -UnitXlsx ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20.xlsx"));
+$units.SetRectangularAdjacency(10)
+$recordTravelAndObjectives = Optimize-RecordTravel -BestOf 100 -MaximumInfeasibleUnits 1 -InfeasibilityPenalty 2.5E5 -Deviation 2.5E5 -StopAfter 7.5E5 -Units $units -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose;
+$units.SetBestSchedule($recordTravelAndObjectives[0]);
+$openings = $units.GetMaximumOpeningSizesByPeriod();
+[System.Linq.Enumerable]::Max($openings.MaximumOpeningSizeByPeriod)
+
+$recordTravelAndObjectives[0].BestHarvestByPeriod
+Write-Harvest -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_harvest100_infeasible6.csv"));
+Write-HarvestSchedule -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_schedule100_infeasible6.csv"));
+Write-Objective -Heuristics $recordTravelAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objective100_infeasible6.csv"));
+$recordTravelAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20_rt_objectiveDistribution100_infeasible6.csv")) -Encoding utf8;
 
 # 2000 units
 $units = Get-Units -UnitXlsx ([System.IO.Path]::Combine($buildDirectory, "FE640_set3_20.xlsx"));
