@@ -12,7 +12,7 @@ namespace FE640
     {
         public int[,] AdjacencyByUnit { get; private set; }
         public int GreenUpInPeriods { get; private set; }
-        public int[] HarvestPeriods;
+        public int[] HarvestSchedule;
         public bool HasAdjacency { get; private set; }
         public float MaximumOpeningSize { get; private set; }
         public float[,] YieldByPeriod;
@@ -76,7 +76,7 @@ namespace FE640
                         int periods = reference[3] - 'A';
                         int units = Math.Min(maximumDataRow, Int32.Parse(reference.Substring(4)) - 1);
                         this.AdjacencyByUnit = new int[units, 4];
-                        this.HarvestPeriods = new int[units];
+                        this.HarvestSchedule = new int[units];
                         this.YieldByPeriod = new float[units, periods + 1];
                         reader.Read();
                     }
@@ -94,27 +94,27 @@ namespace FE640
 
         public int Count
         {
-            get { return this.HarvestPeriods.Length; }
+            get { return this.HarvestSchedule.Length; }
         }
 
-        public int Periods
+        public int HarvestPeriods
         {
             get { return this.YieldByPeriod.GetLength(1) - 1; }
         }
 
         public OpeningSizes GetMaximumOpeningSizesByPeriod()
         {
-            OpeningSizes openingSizes = new OpeningSizes(this.Periods);
+            OpeningSizes openingSizes = new OpeningSizes(this.HarvestPeriods);
             for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
             {
-                int harvestPeriod = this.HarvestPeriods[unitIndex];
+                int harvestPeriod = this.HarvestSchedule[unitIndex];
                 if (harvestPeriod < 1)
                 {
                     // uncut units aren't openings
                     continue;
                 }
 
-                int maxOpeningPeriod = Math.Min(harvestPeriod + this.GreenUpInPeriods, this.Periods + 1);
+                int maxOpeningPeriod = Math.Min(harvestPeriod + this.GreenUpInPeriods, this.HarvestPeriods + 1);
                 for (int openingPeriod = harvestPeriod; openingPeriod < maxOpeningPeriod; ++openingPeriod)
                 {
                     float openingSize = this.GetOpeningSize(unitIndex, openingPeriod);
@@ -130,7 +130,7 @@ namespace FE640
             {
                 throw new ArgumentOutOfRangeException(nameof(openingPeriod));
             }
-            int harvestPeriod = this.HarvestPeriods[unitIndex];
+            int harvestPeriod = this.HarvestSchedule[unitIndex];
             if (harvestPeriod == 0)
             {
                 // unit isn't scheduled for harvest
@@ -171,7 +171,7 @@ namespace FE640
                     continue;
                 }
 
-                int adjacentUnitHarvestPeriod = this.HarvestPeriods[adjacentUnitIndex];
+                int adjacentUnitHarvestPeriod = this.HarvestSchedule[adjacentUnitIndex];
                 openingStatusEvaluated[adjacentUnitIndex] = true;
                 if (adjacentUnitHarvestPeriod < 1)
                 {
@@ -192,22 +192,22 @@ namespace FE640
 
         public void SetBestSchedule(Heuristic heuristic)
         {
-            if (heuristic.BestHarvestPeriods.Length != this.HarvestPeriods.Length)
+            if (heuristic.BestHarvestPeriods.Length != this.HarvestSchedule.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(heuristic));
             }
 
-            Array.Copy(heuristic.BestHarvestPeriods, 0, this.HarvestPeriods, 0, this.HarvestPeriods.Length);
+            Array.Copy(heuristic.BestHarvestPeriods, 0, this.HarvestSchedule, 0, this.HarvestSchedule.Length);
         }
 
         public void SetCurrentSchedule(Heuristic heuristic)
         {
-            if (heuristic.CurrentHarvestPeriods.Length != this.HarvestPeriods.Length)
+            if (heuristic.CurrentHarvestPeriods.Length != this.HarvestSchedule.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(heuristic));
             }
 
-            Array.Copy(heuristic.CurrentHarvestPeriods, 0, this.HarvestPeriods, 0, this.HarvestPeriods.Length);
+            Array.Copy(heuristic.CurrentHarvestPeriods, 0, this.HarvestSchedule, 0, this.HarvestSchedule.Length);
         }
 
         public void SetLoopSchedule(int loopRate)
@@ -219,7 +219,7 @@ namespace FE640
 
             for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
             {
-                this.HarvestPeriods[unitIndex] = 1 + (unitIndex / loopRate) % this.Periods;
+                this.HarvestSchedule[unitIndex] = 1 + (unitIndex / loopRate) % this.HarvestPeriods;
             }
         }
 
@@ -228,13 +228,13 @@ namespace FE640
             Random random = new Random();
             for (int unitIndex = 0; unitIndex < this.Count; ++unitIndex)
             {
-                this.HarvestPeriods[unitIndex] = random.Next(1, this.YieldByPeriod.GetLength(1));
+                this.HarvestSchedule[unitIndex] = random.Next(1, this.YieldByPeriod.GetLength(1));
             }
         }
 
         public void SetRandomSchedule(IList<double> harvestProbabilityByPeriod)
         {
-            if ((harvestProbabilityByPeriod.Count != this.Periods) || (harvestProbabilityByPeriod.Sum() != 1.0F))
+            if ((harvestProbabilityByPeriod.Count != this.HarvestPeriods) || (harvestProbabilityByPeriod.Sum() != 1.0F))
             {
                 throw new ArgumentOutOfRangeException(nameof(harvestProbabilityByPeriod));
             }
@@ -254,7 +254,7 @@ namespace FE640
                     }
                     ++harvestPeriod;
                 }
-                this.HarvestPeriods[unitIndex] = harvestPeriod;
+                this.HarvestSchedule[unitIndex] = harvestPeriod;
             }
         }
 

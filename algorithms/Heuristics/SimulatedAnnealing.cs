@@ -58,10 +58,10 @@ namespace FE640.Heuristics
 
             double acceptanceProbabilityScalingFactor = 1.0F / (double)byte.MaxValue;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.0 - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
             double temperature = this.InitialTemperature;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
 
             for (double currentTemperature = this.InitialTemperature; currentTemperature > this.FinalTemperature; currentTemperature *= this.Alpha)
             {

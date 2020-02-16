@@ -5,11 +5,8 @@ using System.Linq;
 
 namespace FE640.Heuristics
 {
-    public abstract class Heuristic
+    public abstract class Heuristic : RandomNumberConsumer
     {
-        private readonly Random pseudorandom;
-        private readonly byte[] pseudorandomBytes;
-        private int pseudorandomByteIndex;
         private double targetHarvestPerPeriod;
         private double[] targetHarvestWeights;
 
@@ -25,17 +22,12 @@ namespace FE640.Heuristics
 
         protected Heuristic(HarvestUnits units)
         {
-            this.pseudorandom = new Random();
-            this.pseudorandomBytes = new byte[1024];
-            pseudorandom.NextBytes(pseudorandomBytes);
-            this.pseudorandomByteIndex = 0;
-
             this.MaximumOpeningSize = 0.0F;
 
             this.BestHarvestPeriods = new int[units.Count];
-            Array.Copy(units.HarvestPeriods, 0, this.BestHarvestPeriods, 0, units.Count);
+            Array.Copy(units.HarvestSchedule, 0, this.BestHarvestPeriods, 0, units.Count);
             this.CurrentHarvestPeriods = new int[units.Count];
-            Array.Copy(units.HarvestPeriods, 0, this.CurrentHarvestPeriods, 0, units.Count);
+            Array.Copy(units.HarvestSchedule, 0, this.CurrentHarvestPeriods, 0, units.Count);
             this.Units = units;
 
             // units default to harvest period 0, which is treated as no cut
@@ -61,7 +53,10 @@ namespace FE640.Heuristics
             {
                 this.targetHarvestPerPeriod = value;
                 this.BestObjectiveFunction = this.RecalculateObjectiveFunction();
-                this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
+                if (this.ObjectiveFunctionByIteration.Count > 0)
+                {
+                    this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
+                }
             }
         }
 
@@ -75,7 +70,10 @@ namespace FE640.Heuristics
             {
                 this.targetHarvestWeights = value;
                 this.BestObjectiveFunction = this.RecalculateObjectiveFunction();
-                this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
+                if (this.ObjectiveFunctionByIteration.Count > 0)
+                {
+                    this.ObjectiveFunctionByIteration[0] = this.BestObjectiveFunction;
+                }
             }
         }
 
@@ -140,72 +138,42 @@ namespace FE640.Heuristics
             return 0.6 * maximumYield / (double)periods;
         }
 
-        protected double GetPseudorandomByteAsDouble()
+        protected void GetHarvestVolumes(int[] harvestPeriods, double[] harvestVolumeByPeriod)
         {
-            double byteAsFloat = this.pseudorandomBytes[this.pseudorandomByteIndex];
-            ++this.pseudorandomByteIndex;
-
-            // if the last available byte was used, ensure more bytes are available
-            if (this.pseudorandomByteIndex >= this.pseudorandomBytes.Length)
-            {
-                this.pseudorandom.NextBytes(this.pseudorandomBytes);
-                this.pseudorandomByteIndex = 0;
-            }
-
-            return byteAsFloat;
-        }
-
-        protected double GetTwoPseudorandomBytesAsDouble()
-        {
-            // ensure two bytes are available
-            if (this.pseudorandomByteIndex > this.pseudorandomBytes.Length - 2)
-            {
-                this.pseudorandom.NextBytes(this.pseudorandomBytes);
-                this.pseudorandomByteIndex = 0;
-            }
-
-            // get bytes
-            double bytesAsFloat = (double)BitConverter.ToUInt16(this.pseudorandomBytes, this.pseudorandomByteIndex);
-            this.pseudorandomByteIndex += 2;
-
-            // if the last available byte was used, ensure more bytes are available
-            if (this.pseudorandomByteIndex > this.pseudorandomBytes.Length - 1)
-            {
-                this.pseudorandom.NextBytes(this.pseudorandomBytes);
-                this.pseudorandomByteIndex = 0;
-            }
-
-            return bytesAsFloat;
-        }
-
-        public void RecalculateHarvestVolumes()
-        {
-            // recalculate harvest volumes
-            Array.Clear(this.CurrentHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
             for (int unitIndex = 0; unitIndex < this.Units.Count; ++unitIndex)
             {
-                int periodIndex = this.CurrentHarvestPeriods[unitIndex];
-                if (periodIndex > -1)
+                int periodIndex = harvestPeriods[unitIndex];
+                if (periodIndex > 0)
                 {
-                    this.CurrentHarvestByPeriod[periodIndex] += this.Units.YieldByPeriod[unitIndex, periodIndex];
+                    harvestVolumeByPeriod[periodIndex] += this.Units.YieldByPeriod[unitIndex, periodIndex];
                 }
             }
-
-            Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
         }
 
-        public double RecalculateObjectiveFunction()
+        protected double GetObjectiveFunction(double[] harvestVolumes)
         {
             // find objective function value
             double objectiveFunction = 0.0F;
-            for (int periodIndex = 1; periodIndex < this.CurrentHarvestByPeriod.Length; ++periodIndex)
+            for (int periodIndex = 1; periodIndex < harvestVolumes.Length; ++periodIndex)
             {
-                double harvest = this.CurrentHarvestByPeriod[periodIndex];
+                double harvest = harvestVolumes[periodIndex];
                 double differenceFromTarget = this.TargetHarvestPerPeriod - harvest;
                 double weight = this.TargetHarvestWeights[periodIndex];
                 objectiveFunction += weight * differenceFromTarget * differenceFromTarget;
             }
             return objectiveFunction;
+        }
+
+        public void RecalculateHarvestVolumes()
+        {
+            Array.Clear(this.CurrentHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
+            this.GetHarvestVolumes(this.CurrentHarvestPeriods, this.CurrentHarvestByPeriod);
+            Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
+        }
+
+        public double RecalculateObjectiveFunction()
+        {
+            return this.GetObjectiveFunction(this.CurrentHarvestByPeriod);
         }
 
         public abstract TimeSpan Run();

@@ -42,7 +42,7 @@ namespace FE640.Heuristics
             int[,] remainingTabuTenures = new int[this.Units.Count, this.CurrentHarvestByPeriod.Length];
             double currentObjectiveFunction = this.BestObjectiveFunction;
             int movesSinceBestObjectiveImproved = 0;
-            //double tenureScalingFactor = ((double)this.Tenure - 0.01) / (double)byte.MaxValue;
+            //double tenureScalingFactor = ((double)this.Tenure - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             for (int neighborhoodEvaluation = 0; neighborhoodEvaluation < this.Iterations; ++neighborhoodEvaluation)
             {
                 // evaluate potential moves in neighborhood

@@ -29,9 +29,9 @@ namespace FE640.Heuristics
             stopwatch.Start();
 
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.0 - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             int movesSinceBestObjectiveImproved = 0;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
 
             foreach (double threshold in this.Thresholds)
             {

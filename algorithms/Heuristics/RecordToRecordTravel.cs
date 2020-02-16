@@ -110,10 +110,10 @@ namespace FE640.Heuristics
         {
             double maximumAcceptableObjectiveFunction = this.BestObjectiveFunction + this.Deviation;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.0 - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             int iterationsSinceBestObjectiveImproved = 0;
             int movesSinceBestObjectiveImproved = 0;
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
 
             while (iterationsSinceBestObjectiveImproved < this.StopAfter)
             {
@@ -198,13 +198,13 @@ namespace FE640.Heuristics
         {
             double maximumAcceptableObjectiveFunction = this.BestObjectiveFunction + this.Deviation;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.0 - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             int iterationsSinceBestObjectiveImproved = 0;
             int movesSinceBestObjectiveImproved = 0;
             int maximumAdjacentUnits = this.Units.AdjacencyByUnit.GetLength(1);
-            int periods = this.Units.Periods;
+            int periods = this.Units.HarvestPeriods;
             bool[] openingStatusEvaluated = new bool[this.Units.Count];
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
 
             while (iterationsSinceBestObjectiveImproved < this.StopAfter)
             {
@@ -424,7 +424,7 @@ namespace FE640.Heuristics
                         // Computationally expensive but useful in catching incremental errors.
                         this.Units.SetCurrentSchedule(this);
                         OpeningSizes openingSizes = this.Units.GetMaximumOpeningSizesByPeriod();
-                        for (int planningPeriod = 0; planningPeriod < this.Units.Periods + 1; ++planningPeriod)
+                        for (int planningPeriod = 0; planningPeriod < this.Units.HarvestPeriods + 1; ++planningPeriod)
                         {
                             float maxOpeningSize = openingSizes.MaximumOpeningSizeByPeriod[planningPeriod];
                             if (maxOpeningSize > this.Units.MaximumOpeningSize)
@@ -480,15 +480,15 @@ namespace FE640.Heuristics
         {
             double maximumAcceptableObjectiveFunction = this.BestObjectiveFunction + this.Deviation;
             double currentObjectiveFunction = this.BestObjectiveFunction;
-            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.01) / (double)byte.MaxValue;
+            double harvestPeriodScalingFactor = ((double)this.CurrentHarvestByPeriod.Length - 1.0 - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
             bool[] hasInfeasibleOpening = new bool[this.Units.Count];
             int infeasibleUnitCount = 0;
             int iterationsSinceBestObjectiveImproved = 0;
             int movesSinceBestObjectiveImproved = 0;
             int maximumAdjacentUnits = this.Units.AdjacencyByUnit.GetLength(1);
-            int periods = this.Units.Periods;
+            int periods = this.Units.HarvestPeriods;
             bool[] openingStatusEvaluated = new bool[this.Units.Count];
-            double unitIndexScalingFactor = ((double)this.Units.Count - 0.01) / (double)UInt16.MaxValue;
+            double unitIndexScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
 
             while (iterationsSinceBestObjectiveImproved < this.StopAfter)
             {

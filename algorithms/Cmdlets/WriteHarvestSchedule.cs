@@ -42,11 +42,12 @@ namespace FE640.Cmdlets
 
                 for (int heuristicIndex = 0; heuristicIndex < this.Heuristics.Count; ++heuristicIndex)
                 {
+                    line.Append(",");
+
                     Heuristic heuristic = this.Heuristics[heuristicIndex];
-                    if (heuristic.ObjectiveFunctionByIteration.Count > unitIndex)
+                    if (heuristic.BestHarvestPeriods.Length > unitIndex)
                     {
                         int harvestPeriod = heuristic.BestHarvestPeriods[unitIndex];
-                        line.Append(",");
                         line.Append(harvestPeriod.ToString(CultureInfo.InvariantCulture));
                     }
                 }

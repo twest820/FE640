@@ -27,7 +27,7 @@ namespace FE640.Cmdlets
                 line.Clear();
                 line.Append(unitIndex);
                 line.Append(",");
-                line.Append(this.Units.HarvestPeriods[unitIndex]);
+                line.Append(this.Units.HarvestSchedule[unitIndex]);
                 line.Append(",");
                 line.Append(this.Units.AdjacencyByUnit[unitIndex, 0]);
                 line.Append(",");
