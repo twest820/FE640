@@ -36,9 +36,9 @@ Write-Objective -Heuristics $annealerAndObjectives[0] -Step 50 -CsvFile ([System
 $annealerAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_sa100_objectiveDistribution.csv")) -Encoding utf8;
 
 
-$tabu = Optimize-Tabu -Units $units -Iterations 100 -Tenure 4 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
+$tabu = Optimize-Tabu -Units $units -Iterations 100 -Tenure 20 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
 
-$tabuAndObjectives = Optimize-Tabu -BestOf 100 -UniformHarvestProbability -Units $units -Iterations 250 -Tenure 5 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
+$tabuAndObjectives = Optimize-Tabu -BestOf 100 -UniformHarvestProbability -Units $units -Iterations 250 -Tenure 30 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
 $tabuAndObjectives[0].BestHarvestByPeriod
 Write-HarvestSchedule -Heuristics $tabuAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_tu100_schedule.csv"));
 Write-Objective -Heuristics $tabuAndObjectives[0] -Step 1 -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_tu100_objective.csv"));
@@ -73,3 +73,11 @@ Write-HarvestSchedule -Heuristics $geneticAndObjectives[0] -CsvFile ([System.IO.
 Write-Objective -Heuristics $geneticAndObjectives[0] -Step 1 -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_ga2k_objective.csv"));
 $geneticAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_ga2k_objectiveDistribution750.csv")) -Encoding utf8;
 #$geneticAndObjectives[0].BestHarvestPeriods | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_ga2k_scheduleOutFile.csv")) -Encoding utf8;
+
+$tabu = Optimize-Tabu -Units $units -Iterations 1000 -Tenure 500 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
+
+$tabuAndObjectives = Optimize-Tabu -BestOf 100 -UniformHarvestProbability -Units $units -Iterations 1000 -Tenure 300 -TargetHarvestPerPeriod $targetHarvestPerPeriod -TargetHarvestWeights $harvestWeights -Verbose
+$tabuAndObjectives[0].BestHarvestByPeriod
+Write-HarvestSchedule -Heuristics $tabuAndObjectives[0] -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_tu2k_schedule.csv"));
+Write-Objective -Heuristics $tabuAndObjectives[0] -Step 1 -CsvFile ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_tu2k_objective.csv"));
+$tabuAndObjectives[1] | Out-File -FilePath ([System.IO.Path]::Combine($buildDirectory, "FE640_set4_20_tu2k_objectiveDistribution.csv")) -Encoding utf8;

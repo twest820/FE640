@@ -8,6 +8,7 @@ namespace FE640.Cmdlets
     public class OptimizeTabu : OptimizeCmdlet
     {
         [Parameter]
+        [ValidateRange(0, Int32.MaxValue)]
         public Nullable<int> Iterations { get; set; }
 
         [Parameter]

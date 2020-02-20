@@ -27,7 +27,7 @@ distributionGD2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE
 distributionGD2k$V1 = 1.1357 * distributionGD2k$V1 # correct for slightly different great deluge harvest target
 distributionRT2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE640_set2_20_rt_objectiveDistribution.csv"), fileEncoding = "UTF-8-BOM", header = FALSE)
 distributionSA2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE640_set4_20_sa2k_objectiveDistribution.csv"), fileEncoding = "UTF-8-BOM", header = FALSE)
-distributionTU2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE640_set2_20_tu_objectiveDistribution.csv"), fileEncoding = "UTF-8-BOM", header = FALSE)
+distributionTU2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE640_set4_20_tu2k_objectiveDistribution.csv"), fileEncoding = "UTF-8-BOM", header = FALSE)
 distributionGA2k = read.csv(file.path(getwd(), "UnitTests\\bin\\x64\\Release\\FE640_set4_20_ga2k_objectiveDistribution2.csv"), fileEncoding = "UTF-8-BOM", header = FALSE)
 
 c(min(distributionGD2k$V1), min(distributionRT2k$V1), min(distributionSA2k$V1), min(distributionTU2k$V1), min(distributionGA2k$V1)) / 1E6
