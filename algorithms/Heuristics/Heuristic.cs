@@ -168,7 +168,6 @@ namespace FE640.Heuristics
         {
             Array.Clear(this.CurrentHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
             this.GetHarvestVolumes(this.CurrentHarvestPeriods, this.CurrentHarvestByPeriod);
-            Array.Copy(this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod.Length);
         }
 
         public double RecalculateObjectiveFunction()

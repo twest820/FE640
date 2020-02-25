@@ -3,7 +3,7 @@
     "Algorithms": {
       "commandName": "Executable",
       "executablePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell_ise.exe",
-      "commandLineArgs": "C:\\Users\\todd\\Documents\\forestry\\OSU\\FE 640\\scripts\\FE640_set1_20.ps1"
+      "commandLineArgs": "\"C:\\Users\\todd\\Documents\\forestry\\OSU\\FE 640\\scripts\\FE640_set5_20.ps1\""
     }
   }
 }

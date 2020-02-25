@@ -1,6 +1,7 @@
 ﻿using FE640.Heuristics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Management.Automation;
 
@@ -56,6 +57,8 @@ namespace FE640.Cmdlets
             int totalIterations = 0;
             TimeSpan totalRunTime = TimeSpan.Zero;
             List<double> objectiveFunctionValues = new List<double>();
+            Stopwatch timeSinceLastProgress = new Stopwatch();
+            timeSinceLastProgress.Start();
             for (int iteration = 0; iteration < this.BestOf; ++iteration)
             {
                 if (this.HarvestProbabilityByPeriod != null)
@@ -74,8 +77,8 @@ namespace FE640.Cmdlets
                 Heuristic currentHeuristic = this.CreateHeuristic();
                 this.ConfigureHeuristic(currentHeuristic);
                 totalRunTime += currentHeuristic.Run();
-                totalIterations += currentHeuristic.ObjectiveFunctionByIteration.Count;
                 objectiveFunctionValues.Add(currentHeuristic.BestObjectiveFunction);
+                totalIterations += currentHeuristic.ObjectiveFunctionByIteration.Count;
 
                 if ((bestHeuristic == null) || (currentHeuristic.BestObjectiveFunction < bestHeuristic.BestObjectiveFunction))
                 {
@@ -86,7 +89,17 @@ namespace FE640.Cmdlets
                 {
                     break;
                 }
+
+                if (timeSinceLastProgress.Elapsed.TotalSeconds > 30.0)
+                {
+                    this.WriteProgress(new ProgressRecord(0, currentHeuristic.GetType().Name, String.Format("run {0}", iteration))
+                    {
+                        PercentComplete = (int)(100.0F * (float)iteration / (float)this.BestOf)
+                    });
+                    timeSinceLastProgress.Restart();
+                }
             }
+            timeSinceLastProgress.Stop();
 
             this.WriteObject(bestHeuristic);
             if (this.BestOf > 1)
@@ -94,10 +107,10 @@ namespace FE640.Cmdlets
                 this.WriteObject(objectiveFunctionValues);
             }
 
-            this.WriteHeuristicRun(bestHeuristic, totalIterations, totalRunTime);
+            this.WriteHeuristicRun(bestHeuristic, objectiveFunctionValues, totalIterations, totalRunTime);
         }
 
-        private void WriteHeuristicRun(Heuristic heuristic, int iterations, TimeSpan runTime)
+        private void WriteHeuristicRun(Heuristic heuristic, List<double> objectiveFuctionValues, int iterations, TimeSpan runTime)
         {
             int movesAccepted = 0;
             int movesRejected = 0;
@@ -136,7 +149,7 @@ namespace FE640.Cmdlets
 
             int totalMoves = movesAccepted + movesRejected;
             this.WriteVerbose("{0} moves, {1} changing ({2:0%}), {3} unchanging ({4:0%})", totalMoves, movesAccepted, (double)movesAccepted / (double)totalMoves, movesRejected, (double)movesRejected / (double)totalMoves);
-            this.WriteVerbose("objective: best {0:0.00#}M, ending {1:0.00#}M.", 1E-6 * heuristic.BestObjectiveFunction, 1E-6 * heuristic.ObjectiveFunctionByIteration.Last());
+            this.WriteVerbose("objective: best {0:0.00#}M, mean {1:0.00#}M, ending {2:0.00#}M.", 1E-6 * heuristic.BestObjectiveFunction, 1E-6 * objectiveFuctionValues.Average(), 1E-6 * heuristic.ObjectiveFunctionByIteration.Last());
             this.WriteVerbose("flow: {0:0.0#}k mean, {1:0.000} σ, {2:0.000}% even, {3:0.0#}-{4:0.0#}k = range {5:0.0}.", 1E-3 * meanHarvest, standardDeviation, 1E2 * flowEvenness, 1E-3 * minimumHarvest, 1E-3 * maximumHarvest, maximumHarvest - minimumHarvest);
             if (this.Units.HasAdjacency)
             {
@@ -146,7 +159,7 @@ namespace FE640.Cmdlets
             double iterationsPerSecond = (double)iterations / (double)runTime.TotalSeconds;
             double iterationsPerSecondMultiplier = iterationsPerSecond > 1E6 ? 1E-6 : 1E-3;
             string iterationsPerSecondScale = iterationsPerSecond > 1E6 ? "M" : "k";
-            this.WriteVerbose("{0} iterations in {1:s\\.fff}s ({2:0.00} {3}iterations/s).", iterations, runTime, iterationsPerSecondMultiplier * iterationsPerSecond, iterationsPerSecondScale);
+            this.WriteVerbose("{0} iterations in {1:0.000}s ({2:0.00} {3}iterations/s).", iterations, runTime.TotalSeconds, iterationsPerSecondMultiplier * iterationsPerSecond, iterationsPerSecondScale);
         }
 
         protected void WriteVerbose(string format, params object[] args)

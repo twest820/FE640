@@ -28,6 +28,9 @@ namespace FE640.Test
             double endObjectiveFunction = genetic.ObjectiveFunctionByIteration.Last();
             double recalculatedObjectiveFunction = genetic.RecalculateObjectiveFunction();
             double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.99999);
+            Assert.IsTrue(objectiveFunctionRatio < 1.00001);
+
             this.TestContext.WriteLine("objective: best {0:0}, end {1:0}, end ratio {2:0.00000}", genetic.BestObjectiveFunction, genetic.ObjectiveFunctionByIteration.Last(), objectiveFunctionRatio);
         }
     }

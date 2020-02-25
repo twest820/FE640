@@ -199,6 +199,9 @@ namespace FE640.Heuristics
                 variance = this.GetVarianceAndMaybeUpdateBestSolution(currentGeneration);
             }
 
+            Array.Copy(this.BestHarvestByPeriod, 0, this.CurrentHarvestByPeriod, 0, this.BestHarvestByPeriod.Length);
+            Array.Copy(this.BestHarvestPeriods, 0, this.CurrentHarvestPeriods, 0, this.BestHarvestPeriods.Length);
+
             stopwatch.Stop();
             return stopwatch.Elapsed;
         }
