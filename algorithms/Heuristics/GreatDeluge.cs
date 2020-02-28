@@ -90,7 +90,7 @@ namespace FE640.Heuristics
                 }
                 ++iterationsSinceBestObjectiveImproved;
 
-                if (candidateObjectiveFunction < waterLevel)
+                if ((candidateObjectiveFunction < waterLevel) || (candidateObjectiveFunction < currentObjectiveFunction))
                 {
                     this.CurrentHarvestPeriods[unitIndex] = candidateHarvestPeriod;
                     this.CurrentHarvestByPeriod[candidateHarvestPeriod] += candidateYield;
