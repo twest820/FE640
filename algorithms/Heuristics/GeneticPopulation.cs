@@ -117,7 +117,7 @@ namespace FE640.Heuristics
             {
                 // it's possible for all individuals in the population to become clones of a single genotype, in which case the total difference
                 // can be exactly zero and the loop below is either poorly condtioned or produces NaNs
-                Debug.Assert(totalDifferencesFromMaximum > -0.000001);
+                Debug.Assert(Math.Abs(totalDifferencesFromMaximum / totalFitness) < 1E-9);
                 for (int individualIndex = 0; individualIndex < this.Size; ++individualIndex)
                 {
                     this.matingDistributionFunction[individualIndex] = guaranteedProportion;

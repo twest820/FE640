@@ -11,6 +11,30 @@ namespace FE640.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
+        public void HarmonySearch()
+        {
+            HarvestUnits units = new HarvestUnits("FE640_set5_20.xlsx", 100);
+
+            // do evolution
+            HarmonySearch harmony = new HarmonySearch(units)
+            {
+                TargetHarvestPerPeriod = 0.6 * 211500.0 / 5.0,
+                TargetHarvestWeights = new double[] { 0.0, 2.86, 2.20, 1.69, 1.30, 1.0 },
+            };
+            harmony.Run();
+
+            // check self reporting from heuristic
+            harmony.RecalculateHarvestVolumes();
+            double endObjectiveFunction = harmony.ObjectiveFunctionByIteration.Last();
+            double recalculatedObjectiveFunction = harmony.RecalculateObjectiveFunction();
+            double objectiveFunctionRatio = endObjectiveFunction / recalculatedObjectiveFunction;
+            Assert.IsTrue(objectiveFunctionRatio > 0.99999);
+            Assert.IsTrue(objectiveFunctionRatio < 1.00001);
+
+            this.TestContext.WriteLine("objective: best {0:0}, end {1:0}, end ratio {2:0.00000}", harmony.BestObjectiveFunction, harmony.ObjectiveFunctionByIteration.Last(), objectiveFunctionRatio);
+        }
+
+        [TestMethod]
         public void ParticleSwarm()
         {
             HarvestUnits units = new HarvestUnits("FE640_set5_20.xlsx", 100);

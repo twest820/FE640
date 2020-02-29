@@ -70,6 +70,10 @@ namespace FE640.Heuristics
             {
                 throw new ArgumentOutOfRangeException(nameof(this.PopulationSize));
             }
+            if ((this.MutationProbability < 0.0) || (this.MutationProbability > 1.0))
+            {
+                throw new ArgumentOutOfRangeException(nameof(this.MutationProbability));
+            }
             if ((this.ReservedPopulationProportion < 0.0) || (this.ReservedPopulationProportion > 1.0))
             {
                 throw new ArgumentOutOfRangeException(nameof(this.ReservedPopulationProportion));
