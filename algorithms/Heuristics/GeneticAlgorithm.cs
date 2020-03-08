@@ -17,14 +17,14 @@ namespace FE640.Heuristics
         {
             this.EndStandardDeviation = 1.0;
             this.MaximumGenerations = 50;
-            this.MutationProbability = 0.005;
+            this.MutationProbability = 0.3;
             this.PopulationSize = 50;
-            this.ReservedPopulationProportion = 0.1;
+            this.ReservedPopulationProportion = 0.3;
 
             this.ObjectiveFunctionByIteration = new List<double>(this.MaximumGenerations);
         }
 
-        private double GetVarianceAndMaybeUpdateBestSolution(GeneticPopulation generation)
+        private double GetVarianceAndMaybeUpdateBestSolution(HeuristicCritters generation)
         {
             int fittestIndividualIndex = -1;
             double lowestFitness = double.MaxValue;
@@ -88,7 +88,8 @@ namespace FE640.Heuristics
 
             // begin with population of random harvest schedules
             // TODO: should incoming default schedule on this.Units be one of the individuals in the population?
-            GeneticPopulation currentGeneration = new GeneticPopulation(this.PopulationSize, this.Units.Count, this.Units.HarvestPeriods, this.ReservedPopulationProportion);
+            HeuristicCritters currentGeneration = new HeuristicCritters(this.PopulationSize, this.Units.Count, this.Units.HarvestPeriods, this.ReservedPopulationProportion);
+            currentGeneration.RandomizeHarvestSchedules();
             for (int individualIndex = 0; individualIndex < this.PopulationSize; ++individualIndex)
             {
                 int[] schedule = currentGeneration.HarvestSchedules[individualIndex];
@@ -102,10 +103,10 @@ namespace FE640.Heuristics
             double unitScalingFactor = ((double)this.Units.Count - Constant.RoundToZeroTolerance) / (double)UInt16.MaxValue;
             double mutationScalingFactor = 1.0 / (double)UInt16.MaxValue;
             double variance = this.GetVarianceAndMaybeUpdateBestSolution(currentGeneration);
-            GeneticPopulation nextGeneration = new GeneticPopulation(currentGeneration);
+            HeuristicCritters nextGeneration = new HeuristicCritters(currentGeneration);
             for (int generationIndex = 1; (generationIndex < this.MaximumGenerations) && (variance > endVariance); ++generationIndex)
             {
-                currentGeneration.RecalculateMatingDistributionFunction();
+                currentGeneration.RecalculateFitnessDistribution();
                 for (int matingIndex = 0; matingIndex < currentGeneration.Size; ++matingIndex)
                 {
                     // crossover parents' genetic material to create offsprings' genetic material
@@ -197,7 +198,7 @@ namespace FE640.Heuristics
                     }
                 }
 
-                GeneticPopulation generationSwapPointer = currentGeneration;
+                HeuristicCritters generationSwapPointer = currentGeneration;
                 currentGeneration = nextGeneration;
                 nextGeneration = generationSwapPointer;
                 variance = this.GetVarianceAndMaybeUpdateBestSolution(currentGeneration);

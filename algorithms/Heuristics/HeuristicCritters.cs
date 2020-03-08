@@ -3,18 +3,20 @@ using System.Diagnostics;
 
 namespace FE640.Heuristics
 {
-    internal class GeneticPopulation : RandomNumberConsumer
+    internal class HeuristicCritters : RandomNumberConsumer
     {
-        private readonly double[] matingDistributionFunction;
+        private readonly double[] fitnessCumulativeDistributionFunction;
         private readonly double reservedPopulationProportion;
 
+        public double[] FitnessProbabilityDensity { get; private set; }
         public double[] IndividualFitness { get; private set; }
         public double[][] HarvestVolumesByPeriod { get; private set; }
         public int[][] HarvestSchedules { get; private set; }
 
-        public GeneticPopulation(int populationSize, int harvestUnits, int harvestPeriods, double reservedPopulationProportion)
+        public HeuristicCritters(int populationSize, int harvestUnits, int harvestPeriods, double reservedPopulationProportion)
         {
-            this.matingDistributionFunction = new double[populationSize];
+            this.fitnessCumulativeDistributionFunction = new double[populationSize];
+            this.FitnessProbabilityDensity = new double[populationSize];
             this.IndividualFitness = new double[populationSize];
             this.HarvestVolumesByPeriod = new double[populationSize][];
             this.HarvestSchedules = new int[populationSize][];
@@ -34,10 +36,10 @@ namespace FE640.Heuristics
             }
         }
 
-        public GeneticPopulation(GeneticPopulation other)
+        public HeuristicCritters(HeuristicCritters other)
             : this(other.Size, other.HarvestUnits, other.HarvestPeriods, other.reservedPopulationProportion)
         {
-            Array.Copy(other.matingDistributionFunction, 0, this.matingDistributionFunction, 0, this.Size);
+            Array.Copy(other.fitnessCumulativeDistributionFunction, 0, this.fitnessCumulativeDistributionFunction, 0, this.Size);
             Array.Copy(other.IndividualFitness, 0, this.IndividualFitness, 0, this.Size);
             for (int individualIndex = 0; individualIndex < other.Size; ++individualIndex)
             {
@@ -70,7 +72,7 @@ namespace FE640.Heuristics
             firstParentIndex = this.Size - 1;
             for (int individualIndex = 0; individualIndex < this.Size; ++individualIndex)
             {
-                if (firstParentCumlativeProbability < matingDistributionFunction[individualIndex])
+                if (firstParentCumlativeProbability < fitnessCumulativeDistributionFunction[individualIndex])
                 {
                     firstParentIndex = individualIndex;
                     break;
@@ -84,7 +86,7 @@ namespace FE640.Heuristics
             secondParentIndex = this.Size - 1;
             for (int individualIndex = 0; individualIndex < this.Size; ++individualIndex)
             {
-                if (secondParentCumlativeProbability < matingDistributionFunction[individualIndex])
+                if (secondParentCumlativeProbability < fitnessCumulativeDistributionFunction[individualIndex])
                 {
                     secondParentIndex = individualIndex;
                     break;
@@ -92,10 +94,23 @@ namespace FE640.Heuristics
             }
         }
 
-        public void RecalculateMatingDistributionFunction()
+        public void RandomizeHarvestSchedules()
         {
-            // find cumulative distribution function (CDF) representing prevalence of individuals in population
-            // Since individuals with the lowest fitness values should be most likely to mate their mating likelihood is found using
+            double harvestPeriodScalingFactor = ((double)this.HarvestPeriods - Constant.RoundToZeroTolerance) / (double)byte.MaxValue;
+            for (int individualIndex = 0; individualIndex < this.Size; ++individualIndex)
+            {
+                int[] schedule = this.HarvestSchedules[individualIndex];
+                for (int unitIndex = 0; unitIndex < this.HarvestUnits; ++unitIndex)
+                {
+                    schedule[unitIndex] = (int)(harvestPeriodScalingFactor * this.GetPseudorandomByteAsDouble()) + 1;
+                }
+            }
+        }
+
+        public void RecalculateFitnessDistribution()
+        {
+            // find cumulative distribution function (CDF) proportionallyt representing individuals in population by fitness
+            // Since individuals with the lowest fitness values should be the represented, their probability is found using
             //    (maxFitness - individualFitness) / (n * maxFitness - totalFitness)
             // as this provides the desired likelihood and, properly scaled, produces a CDF totalling 1.0 when accumulated with the guaranteed
             // minimum fitnesses.
@@ -120,19 +135,21 @@ namespace FE640.Heuristics
                 Debug.Assert(Math.Abs(totalDifferencesFromMaximum / totalFitness) < 1E-9);
                 for (int individualIndex = 0; individualIndex < this.Size; ++individualIndex)
                 {
-                    this.matingDistributionFunction[individualIndex] = guaranteedProportion;
+                    this.fitnessCumulativeDistributionFunction[individualIndex] = guaranteedProportion;
                 }
                 return;
             }
 
-            this.matingDistributionFunction[0] = guaranteedProportion + fitnessProportion * (maximumFitness - this.IndividualFitness[0]) / totalDifferencesFromMaximum;
+            this.fitnessCumulativeDistributionFunction[0] = guaranteedProportion + fitnessProportion * (maximumFitness - this.IndividualFitness[0]) / totalDifferencesFromMaximum;
             for (int individualIndex = 1; individualIndex < this.Size; ++individualIndex)
             {
-                this.matingDistributionFunction[individualIndex] = matingDistributionFunction[individualIndex - 1];
-                this.matingDistributionFunction[individualIndex] += guaranteedProportion + fitnessProportion * (maximumFitness - this.IndividualFitness[individualIndex]) / totalDifferencesFromMaximum;
+                double individualProbability = guaranteedProportion + fitnessProportion * (maximumFitness - this.IndividualFitness[individualIndex]) / totalDifferencesFromMaximum;
+                this.FitnessProbabilityDensity[individualIndex] = individualProbability;
+                this.fitnessCumulativeDistributionFunction[individualIndex] = this.fitnessCumulativeDistributionFunction[individualIndex - 1];
+                this.fitnessCumulativeDistributionFunction[individualIndex] += individualProbability;
 
-                Debug.Assert(this.matingDistributionFunction[individualIndex] > this.matingDistributionFunction[individualIndex - 1]);
-                Debug.Assert(this.matingDistributionFunction[individualIndex] <= 1.0000001);
+                Debug.Assert(this.fitnessCumulativeDistributionFunction[individualIndex] > this.fitnessCumulativeDistributionFunction[individualIndex - 1]);
+                Debug.Assert(this.fitnessCumulativeDistributionFunction[individualIndex] <= 1.0000001);
             }
         }
     }
