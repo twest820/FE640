@@ -4,11 +4,17 @@ obj/
 packages/
 TestResults/
 
-# class readings
+# class readings and project
 combinatorial.docx
 doc/
+project/*/
+project/*.csv
+project/*.docx
+project/*.pptx
+project/*.xlsx
 
 # cache/option files and directories
+.Rdata
 .Rhistory
 .Rproj.user
 .vs/

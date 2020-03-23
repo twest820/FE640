@@ -30,7 +30,7 @@ namespace FE640.Heuristics
             double lowestFitness = double.MaxValue;
             double sum = 0.0;
             double sumOfSquares = 0.0;
-            for (int individualIndex = 1; individualIndex < generation.Size; ++individualIndex)
+            for (int individualIndex = 0; individualIndex < generation.Size; ++individualIndex)
             {
                 double individualFitness = generation.IndividualFitness[individualIndex];
                 sum += individualFitness;
